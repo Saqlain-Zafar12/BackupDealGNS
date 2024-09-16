@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
-import { Table, Button, Space, Modal, Form, Input } from 'antd';
+import { Table, Button, Space, Modal, Form, Input, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { useAttribute } from '../../context/AttributesContext';
 
 const AttributeManagement = () => {
-  const [attributes, setAttributes] = useState([
-    { id: 1, name: 'Color' },
-    { id: 2, name: 'Size' },
-  ]);
+  const { attributes, addAttribute, updateAttribute, deleteAttribute, isLoading } = useAttribute();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState(null);
   const [form] = Form.useForm();
 
   const showModal = (attribute = null) => {
     setEditingAttribute(attribute);
-    form.setFieldsValue(attribute || { name: '' });
+    form.setFieldsValue(attribute || { en_attribute_name: '', ar_attribute_name: '' });
     setIsModalVisible(true);
   };
 
@@ -23,36 +21,46 @@ const AttributeManagement = () => {
     form.resetFields();
   };
 
-  const handleSubmit = (values) => {
-    const newAttribute = {
-      id: editingAttribute ? editingAttribute.id : Date.now(),
-      name: values.name,
-    };
-
-    if (editingAttribute) {
-      setAttributes(attributes.map(attr => attr.id === editingAttribute.id ? newAttribute : attr));
-    } else {
-      setAttributes([...attributes, newAttribute]);
+  const handleSubmit = async (values) => {
+    try {
+      if (editingAttribute) {
+        await updateAttribute(editingAttribute.id, values);
+        message.success('Attribute updated successfully');
+      } else {
+        await addAttribute(values);
+        message.success('Attribute added successfully');
+      }
+      handleCancel();
+    } catch (error) {
+      message.error('Failed to save attribute');
     }
-
-    handleCancel();
   };
 
   const handleDelete = (id) => {
     Modal.confirm({
       title: 'Are you sure you want to delete this attribute?',
       content: 'This action cannot be undone.',
-      onOk: () => {
-        setAttributes(attributes.filter(attr => attr.id !== id));
+      onOk: async () => {
+        try {
+          await deleteAttribute(id);
+          message.success('Attribute deleted successfully');
+        } catch (error) {
+          message.error('Failed to delete attribute');
+        }
       },
     });
   };
 
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: 'English Name',
+      dataIndex: 'en_attribute_name',
+      key: 'en_attribute_name',
+    },
+    {
+      title: 'Arabic Name',
+      dataIndex: 'ar_attribute_name',
+      key: 'ar_attribute_name',
     },
     {
       title: 'Actions',
@@ -90,6 +98,7 @@ const AttributeManagement = () => {
         columns={columns} 
         dataSource={attributes} 
         rowKey="id"
+        loading={isLoading}
       />
 
       <Modal
@@ -100,9 +109,16 @@ const AttributeManagement = () => {
       >
         <Form form={form} onFinish={handleSubmit} layout="vertical">
           <Form.Item
-            name="name"
-            label="Attribute Name"
-            rules={[{ required: true, message: 'Please input the attribute name!' }]}
+            name="en_attribute_name"
+            label="English Attribute Name"
+            rules={[{ required: true, message: 'Please input the English attribute name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="ar_attribute_name"
+            label="Arabic Attribute Name"
+            rules={[{ required: true, message: 'Please input the Arabic attribute name!' }]}
           >
             <Input />
           </Form.Item>

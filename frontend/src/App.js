@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CategoryProvider } from './context/CategoryContext';
+import { BrandProvider } from './context/BrandContext'; // Import BrandProvider
+import Cookies from 'js-cookie';
+import { v4 as uuidv4 } from 'uuid';
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
 import OrderConfirmation from "./pages/ConfirmOrder";
@@ -19,6 +23,7 @@ import CancelledOrderList from './pages/Dashboard/CancelledOrderList';
 import CategoryList from './pages/Dashboard/CategoryList';
 import BrandList from './pages/Dashboard/BrandList';
 import Login from './pages/Login/Login';
+import { GlobalProvider } from './context/GlobalContext';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -32,6 +37,15 @@ const PrivateRoute = ({ children }) => {
 
 function AppContent() {
   const { loading } = useAuth();
+
+  useEffect(() => {
+    let webUserId = Cookies.get('web_user_id');
+    if (!webUserId) {
+      webUserId = uuidv4();
+      Cookies.set('web_user_id', webUserId, { expires: 365 * 10 });
+    }
+    console.log('Web User ID:', webUserId);
+  }, []);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -94,9 +108,9 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <AuthProvider>
+       <GlobalProvider>
         <AppContent />
-      </AuthProvider>
+      </GlobalProvider>
     </Router>
   );
 }

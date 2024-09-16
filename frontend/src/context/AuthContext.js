@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 const AuthContext = createContext(null);
 
@@ -15,17 +16,18 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = Cookies.get('token');
       if (token) {
         try {
           console.log('Verifying token at:', `${API_URL}/auth/verify-token`);
+          console.log('Token:', token);  // Added this line to show token in console
           const response = await axios.get(`${API_URL}/auth/verify-token`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setUser(response.data.user);
         } catch (error) {
           console.error('Token verification failed:', error);
-          localStorage.removeItem('token');
+          Cookies.remove('token');
         }
       }
       setLoading(false);
@@ -38,7 +40,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const { token } = response.data;
-      localStorage.setItem('token', token);
+      Cookies.set('token', token, { 
+        expires: 3/24,  
+        secure: true, 
+        sameSite: 'strict' 
+      });
+      console.log('Login Token:', token);  // Added this line to show token in console
       const userResponse = await axios.get(`${API_URL}/auth/verify-token`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -52,7 +59,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('token');
+    Cookies.remove('token');
     navigate('/login');
   };
 

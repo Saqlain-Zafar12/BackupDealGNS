@@ -1,15 +1,22 @@
 import React from 'react';
 import { AuthProvider } from './AuthContext';
-// Import other context providers as needed
-// import { SomeOtherProvider } from './SomeOtherContext';
+import { CategoryProvider } from './CategoryContext';
+import { BrandProvider } from './BrandContext';
+import { ProductProvider } from './ProductContext';
+import { AttributeProvider } from './AttributesContext';
 
-export const GlobalProvider = ({ children, navigate }) => {
+export const GlobalProvider = ({ children }) => {
   return (
-    <AuthProvider navigate={navigate}>
-      {/* Wrap with other providers as needed */}
-      {/* <SomeOtherProvider> */}
-        {children}
-      {/* </SomeOtherProvider> */}
+    <AuthProvider>
+      <CategoryProvider>
+        <BrandProvider>
+          <ProductProvider>
+            <AttributeProvider>
+              {children}
+            </AttributeProvider>
+          </ProductProvider>
+        </BrandProvider>
+      </CategoryProvider>
     </AuthProvider>
   );
 };

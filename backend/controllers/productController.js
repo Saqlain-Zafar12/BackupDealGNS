@@ -26,6 +26,10 @@ exports.addProduct = async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  if (!Array.isArray(en_attributes) || !Array.isArray(ar_attributes)) {
+    return res.status(400).json({ error: 'Attributes must be an array' });
+  }
+
   try {
     const sku = await generateUniqueSKU();
     const result = await pool.query(
@@ -65,6 +69,7 @@ exports.getAllActiveProducts = async (req, res) => {
 };
 
 exports.getAllDeactivatedProducts = async (req, res) => {
+  console.log(req.query)
   const { lang } = req.query;
   try {
     const result = await pool.query('SELECT * FROM products WHERE is_active = false');
@@ -126,6 +131,10 @@ exports.editProduct = async (req, res) => {
 
   if (!category_id || !brand_id || !actual_price || !price || !en_title || !ar_title) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  if (!Array.isArray(en_attributes) || !Array.isArray(ar_attributes)) {
+    return res.status(400).json({ error: 'Attributes must be an array' });
   }
 
   try {

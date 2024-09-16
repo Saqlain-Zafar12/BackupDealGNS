@@ -1,19 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Modal, Form, Input, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { useCategory } from '../../context/CategoryContext';
 
 const CategoryList = () => {
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Electronics', description: 'Electronic devices and accessories' },
-    { id: 2, name: 'Clothing', description: 'Apparel and fashion items' },
-  ]);
+  const { categories, addCategory, updateCategory, deleteCategory, fetchCategories } = useCategory();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      setLoading(true);
+      await fetchCategories();
+      setLoading(false);
+    };
+
+    loadCategories();
+  }, [fetchCategories]);
 
   const showModal = (category = null) => {
     setEditingCategory(category);
-    form.setFieldsValue(category || { name: '', description: '' });
+    form.setFieldsValue(category || { en_category_name: '', ar_category_name: '' });
     setIsModalVisible(true);
   };
 
@@ -23,45 +32,46 @@ const CategoryList = () => {
     form.resetFields();
   };
 
-  const handleSubmit = (values) => {
-    const newCategory = {
-      id: editingCategory ? editingCategory.id : Date.now(),
-      name: values.name,
-      description: values.description,
-    };
-
-    if (editingCategory) {
-      setCategories(categories.map(cat => cat.id === editingCategory.id ? newCategory : cat));
-      message.success('Category updated successfully');
-    } else {
-      setCategories([...categories, newCategory]);
-      message.success('Category added successfully');
+  const handleSubmit = async (values) => {
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, values);
+        message.success('Category updated successfully');
+      } else {
+        await addCategory(values);
+        message.success('Category added successfully');
+      }
+      handleCancel();
+    } catch (error) {
+      message.error('An error occurred. Please try again.');
     }
-
-    handleCancel();
   };
 
   const handleDelete = (id) => {
     Modal.confirm({
       title: 'Are you sure you want to delete this category?',
       content: 'This action cannot be undone.',
-      onOk: () => {
-        setCategories(categories.filter(cat => cat.id !== id));
-        message.success('Category deleted successfully');
+      onOk: async () => {
+        try {
+          await deleteCategory(id);
+          message.success('Category deleted successfully');
+        } catch (error) {
+          message.error('An error occurred. Please try again.');
+        }
       },
     });
   };
 
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: 'English Name',
+      dataIndex: 'en_category_name',
+      key: 'en_category_name',
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      title: 'Arabic Name',
+      dataIndex: 'ar_category_name',
+      key: 'ar_category_name',
     },
     {
       title: 'Actions',
@@ -99,6 +109,7 @@ const CategoryList = () => {
         columns={columns} 
         dataSource={categories} 
         rowKey="id"
+        loading={loading}
       />
 
       <Modal
@@ -109,18 +120,18 @@ const CategoryList = () => {
       >
         <Form form={form} onFinish={handleSubmit} layout="vertical">
           <Form.Item
-            name="name"
-            label="Category Name"
-            rules={[{ required: true, message: 'Please input the category name!' }]}
+            name="en_category_name"
+            label="English Category Name"
+            rules={[{ required: true, message: 'Please input the English category name!' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please input the category description!' }]}
+            name="ar_category_name"
+            label="Arabic Category Name"
+            rules={[{ required: true, message: 'Please input the Arabic category name!' }]}
           >
-            <Input.TextArea />
+            <Input />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">

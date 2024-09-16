@@ -1,33 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Modal, Form, Input, Select, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { useBrand } from '../../context/BrandContext';
+import { useCategory } from '../../context/CategoryContext';
 
 const { Option } = Select;
 
 const BrandList = () => {
-  const [brands, setBrands] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const { brands, addBrand, updateBrand, deleteBrand, fetchBrands, isLoading } = useBrand();
+  const { categories } = useCategory();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
   const [form] = Form.useForm();
 
   useEffect(() => {
-    // Fetch brands and categories from your API
-    // This is a mock implementation
-    setBrands([
-      { id: 1, name: 'Nike', category_id: 1 },
-      { id: 2, name: 'Adidas', category_id: 1 },
-      { id: 3, name: 'Apple', category_id: 2 },
-    ]);
-    setCategories([
-      { id: 1, name: 'Clothing' },
-      { id: 2, name: 'Electronics' },
-    ]);
-  }, []);
+    if (isLoading) {
+      fetchBrands();
+    }
+  }, [fetchBrands, isLoading]);
 
   const showModal = (brand = null) => {
     setEditingBrand(brand);
-    form.setFieldsValue(brand || { name: '', category_id: undefined });
+    form.setFieldsValue(brand || { en_brand_name: '', ar_brand_name: '', category_id: undefined });
     setIsModalVisible(true);
   };
 
@@ -37,46 +31,52 @@ const BrandList = () => {
     form.resetFields();
   };
 
-  const handleSubmit = (values) => {
-    const newBrand = {
-      id: editingBrand ? editingBrand.id : Date.now(),
-      name: values.name,
-      category_id: values.category_id,
-    };
-
-    if (editingBrand) {
-      setBrands(brands.map(brand => brand.id === editingBrand.id ? newBrand : brand));
-      message.success('Brand updated successfully');
-    } else {
-      setBrands([...brands, newBrand]);
-      message.success('Brand added successfully');
+  const handleSubmit = async (values) => {
+    try {
+      if (editingBrand) {
+        await updateBrand(editingBrand.id, values);
+        message.success('Brand updated successfully');
+      } else {
+        await addBrand(values);
+        message.success('Brand added successfully');
+      }
+      handleCancel();
+    } catch (error) {
+      message.error('An error occurred. Please try again.');
     }
-
-    handleCancel();
   };
 
   const handleDelete = (id) => {
     Modal.confirm({
       title: 'Are you sure you want to delete this brand?',
       content: 'This action cannot be undone.',
-      onOk: () => {
-        setBrands(brands.filter(brand => brand.id !== id));
-        message.success('Brand deleted successfully');
+      onOk: async () => {
+        try {
+          await deleteBrand(id);
+          message.success('Brand deleted successfully');
+        } catch (error) {
+          message.error('An error occurred. Please try again.');
+        }
       },
     });
   };
 
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: 'English Name',
+      dataIndex: 'en_brand_name',
+      key: 'en_brand_name',
+    },
+    {
+      title: 'Arabic Name',
+      dataIndex: 'ar_brand_name',
+      key: 'ar_brand_name',
     },
     {
       title: 'Category',
       dataIndex: 'category_id',
       key: 'category_id',
-      render: (category_id) => categories.find(cat => cat.id === category_id)?.name || 'Unknown',
+      render: (category_id) => categories.find(cat => cat.id === category_id)?.en_category_name || 'Unknown',
     },
     {
       title: 'Actions',
@@ -114,6 +114,7 @@ const BrandList = () => {
         columns={columns} 
         dataSource={brands} 
         rowKey="id"
+        loading={isLoading}
       />
 
       <Modal
@@ -124,9 +125,16 @@ const BrandList = () => {
       >
         <Form form={form} onFinish={handleSubmit} layout="vertical">
           <Form.Item
-            name="name"
-            label="Brand Name"
-            rules={[{ required: true, message: 'Please input the brand name!' }]}
+            name="en_brand_name"
+            label="English Brand Name"
+            rules={[{ required: true, message: 'Please input the English brand name!' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="ar_brand_name"
+            label="Arabic Brand Name"
+            rules={[{ required: true, message: 'Please input the Arabic brand name!' }]}
           >
             <Input />
           </Form.Item>
@@ -137,7 +145,7 @@ const BrandList = () => {
           >
             <Select placeholder="Select a category">
               {categories.map(category => (
-                <Option key={category.id} value={category.id}>{category.name}</Option>
+                <Option key={category.id} value={category.id}>{category.en_category_name}</Option>
               ))}
             </Select>
           </Form.Item>

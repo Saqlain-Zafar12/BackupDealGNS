@@ -1,19 +1,30 @@
 import React from 'react';
-import { Table, Button } from 'antd';
+import { Table, Button, message } from 'antd';
 import { RedoOutlined } from '@ant-design/icons';
+import { useProduct } from '../../context/ProductContext';
 
 const NonActiveProduct = () => {
-  const nonActiveProducts = [
-    { id: 1, name: 'Inactive Product 1', price: 19.99, stock: 100 },
-    { id: 2, name: 'Inactive Product 2', price: 29.99, stock: 50 },
-    { id: 3, name: 'Inactive Product 3', price: 39.99, stock: 75 },
-  ];
+  const { products, updateProduct, isLoading } = useProduct();
+
+  const handleReactivate = async (id) => {
+    try {
+      await updateProduct(id, { is_active: true });
+      message.success('Product reactivated successfully');
+    } catch (error) {
+      message.error('Failed to reactivate product');
+    }
+  };
 
   const columns = [
     {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
+      title: 'English Name',
+      dataIndex: 'en_product_name',
+      key: 'en_product_name',
+    },
+    {
+      title: 'Arabic Name',
+      dataIndex: 'ar_product_name',
+      key: 'ar_product_name',
     },
     {
       title: 'Price',
@@ -30,7 +41,7 @@ const NonActiveProduct = () => {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Button icon={<RedoOutlined />} onClick={() => console.log('Reactivate', record.id)} />
+        <Button icon={<RedoOutlined />} onClick={() => handleReactivate(record.id)} />
       ),
     },
   ];
@@ -38,7 +49,12 @@ const NonActiveProduct = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Non-Active Products</h2>
-      <Table columns={columns} dataSource={nonActiveProducts} rowKey="id" />
+      <Table 
+        columns={columns} 
+        dataSource={products.filter(product => !product.is_active)} 
+        rowKey="id" 
+        loading={isLoading}
+      />
     </div>
   );
 };
