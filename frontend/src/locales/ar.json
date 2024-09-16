@@ -1,0 +1,95 @@
+{
+    "navbar": {
+      "home": "الرئيسية",
+      "allProducts": "جميع المنتجات",
+      "deals": "العروض"
+    },
+    "search": {
+      "placeholder": "بحث",
+      "button": "بحث"
+    },
+    "productList": {
+      "recommendedProducts": "المنتجات الموصى بها"
+    },
+    "superDeals": {
+      "title": "عروض مميزة",
+      "hotDeal": "صفقة ساخنة",
+      "sold": "تم البيع",
+      "viewDeal": "اطلب الآن"
+    },
+    "product": {
+      "freeDelivery": "توصيل مجاني",
+      "off": "خصم",
+      "vatIncluded": "شامل ضريبة القيمة المضافة"
+    },
+    "footer": {
+      "contactUs": "اتصل بنا",
+      "companyInfo": "موقع مملوك لشركة جيترونيكس ذ.م.م، المنطقة الحرة شمس، مدينة الشارقة للإعلام، الشارقة، الإمارات العربية المتحدة",
+      "information": "معلومات",
+      "aboutUs": "من نحن",
+      "unclaimableProducts": "المنتجات غير القابلة للمطالبة",
+      "whyUs": "لماذا نحن؟",
+      "newsletter": "النشرة الإخبارية",
+      "emailPlaceholder": "بريدك الإلكتروني",
+      "subscribe": "اشترك",
+      "followUs": "تابعنا على وسائل التواصل الاجتماعي",
+      "privacyPolicy": "سياسة الخصوصية",
+      "termsOfUse": "شروط الاستخدام",
+      "legalEnquiryGuide": "دليل الاستفسارات القانونية لمعلومات المستخدم",
+      "allRightsReserved": "جميع الحقوق محفوظة"
+    },
+    "banner": {
+      "freeShipping": "شحن مجاني للطلبات التي تزيد عن 100 دولار",
+      "discount": "خصم 20٪ على طلبك الأول",
+      "payLater": "اشترِ الآن وادفع لاحقًا متاح"
+    },
+    "placeOrder": {
+      "title": "شورت يوجا للنساء مقاس حر سلس لرفع المؤخرة والتحكم في البطن - توصيل مجاني",
+      "productImage": "صورة المنتج",
+      "thumbnail": "صورة مصغرة",
+      "itemsSold": "تم بيعها",
+      "orderNow": "اطلب الآن",
+      "formDescription": "يرجى ملء النموذج وسنقوم بالتوصيل في اليوم التالي.",
+      "fullName": "الاسم الكامل*",
+      "fullNameRequired": "الرجاء إدخال اسمك الكامل",
+      "mobile": "رقم الهاتف المحمول*",
+      "mobileRequired": "الرجاء إدخال رقم هاتفك المحمول",
+      "quantity": "الكمية*",
+      "quantityRequired": "الرجاء اختيار الكمية",
+      "emirates": "الإمارات*",
+      "emiratesRequired": "الرجاء اختيار إمارة",
+      "selectCity": "اختر المدينة*",
+      "deliveryAddress": "عنوان التوصيل*",
+      "addressRequired": "الرجاء إدخال عنوان التوصيل",
+      "addressPlaceholder": "رقم المبنى، اسم الشارع، المنطقة",
+      "submitOrder": "تقديم الطلب",
+      "description": "الوصف",
+      "productDescription": "شورت يوجا للنساء بخصر عالٍ مقاس حر سلس لرفع المؤخرة والتحكم في البطن للتمارين الرياضية في صالة الألعاب الرياضية",
+      "orderSuccess": "تم تقديم الطلب بنجاح!"
+    },
+    "orderConfirmation": {
+      "title": "تم تأكيد الطلب!",
+      "message": "تم تأكيد طلبك وسيتم شحنه خلال يومي العمل القادمين!",
+      "orderDetails": "تفاصيل الطلب",
+      "orderDate": "تاريخ الطلب",
+      "orderNo": "رقم الطلب",
+      "payment": "طريقة الدفع",
+      "cashOnDelivery": "الدفع عند الاستلام",
+      "shippingAddress": "عنوان الشحن",
+      "productName": "شورت يوجا للنساء مقاس حر سلس لرفع المؤخرة والتحكم في البطن",
+      "quantity": "الكمية",
+      "subtotal": "المجموع الفرعي",
+      "shippingFee": "رسوم الشحن",
+      "free": "مجاناً",
+      "grandTotal": "المجموع الكلي",
+      "viewMoreOffers": "عرض المزيد من العروض",
+      "thankYou": "شكراً لتسوقك معنا!"
+    },
+    "carousel": {
+      "previousSlide": "الشريحة السابقة",
+      "nextSlide": "الشريحة التالية",
+      "goToSlide": "انتقل إلى الشريحة {number}",
+      "autoPlay": "تشغيل تلقائي",
+      "pauseAutoPlay": "إيقاف التشغيل التلقائي"
+    }
+  }

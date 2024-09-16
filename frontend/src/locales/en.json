@@ -1,0 +1,95 @@
+{
+    "navbar": {
+      "home": "Home",
+      "allProducts": "All Products",
+      "deals": "Deals"
+    },
+    "search": {
+      "placeholder": "Search",
+      "button": "Search"
+    },
+    "productList": {
+      "recommendedProducts": "Recommended Products"
+    },
+    "superDeals": {
+      "title": "Super Deals",
+      "hotDeal": "HOT DEAL",
+      "sold": "sold",
+      "viewDeal": "Order Now"
+    },
+    "product": {
+      "freeDelivery": "Free Delivery",
+      "off": "OFF",
+      "vatIncluded": "VAT included"
+    },
+    "footer": {
+      "contactUs": "Contact Us",
+      "companyInfo": "Website owned by Jetronics LLC, Shams Free Zone, Sharjah Media City, Sharjah, UAE",
+      "information": "Information",
+      "aboutUs": "About Us",
+      "unclaimableProducts": "Un-Claimable Products",
+      "whyUs": "Why Us?",
+      "newsletter": "Newsletter",
+      "emailPlaceholder": "Your email",
+      "subscribe": "Subscribe",
+      "followUs": "Follow us on social media",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfUse": "Terms of Use",
+      "legalEnquiryGuide": "User Information Legal Enquiry Guide",
+      "allRightsReserved": "All rights reserved"
+    },
+    "banner": {
+      "freeShipping": "Free Shipping on Orders Over $100",
+      "discount": "20% Off Your First Order",
+      "payLater": "Buy Now, Pay Later Available"
+    },
+    "placeOrder": {
+      "title": "Free Size Women Yoga Shorts Seamless Butt Lifting Tummy Control - Free Delivery",
+      "productImage": "Product Image",
+      "thumbnail": "Thumbnail",
+      "itemsSold": "Items Sold",
+      "orderNow": "Order Now",
+      "formDescription": "Kindly fill the form & we will deliver next day.",
+      "fullName": "Full Name*",
+      "fullNameRequired": "Please enter your full name",
+      "mobile": "Mobile*",
+      "mobileRequired": "Please enter your mobile number",
+      "quantity": "Quantity*",
+      "quantityRequired": "Please select a quantity",
+      "emirates": "Emirates*",
+      "emiratesRequired": "Please select an emirate",
+      "selectCity": "Select City*",
+      "deliveryAddress": "Delivery Address*",
+      "addressRequired": "Please enter your delivery address",
+      "addressPlaceholder": "Building No, Street name, Area",
+      "submitOrder": "SUBMIT ORDER",
+      "description": "Description",
+      "productDescription": "Free Size Women High Waisted Yoga Shorts Seamless Butt Lifting Tummy Control Gym Exercise Workout Active Leggings",
+      "orderSuccess": "Order placed successfully!"
+    },
+    "orderConfirmation": {
+      "title": "Order Confirmed!",
+      "message": "Your order has been confirmed and will be shipped in the next two working days!",
+      "orderDetails": "Order Details",
+      "orderDate": "Order Date",
+      "orderNo": "Order No",
+      "payment": "Payment",
+      "cashOnDelivery": "Cash on Delivery",
+      "shippingAddress": "Shipping Address",
+      "productName": "Free Size Women Yoga Shorts Seamless Butt Lifting Tummy Control",
+      "quantity": "Quantity",
+      "subtotal": "Subtotal",
+      "shippingFee": "Shipping Fee",
+      "free": "Free",
+      "grandTotal": "Grand Total",
+      "viewMoreOffers": "View More Offers",
+      "thankYou": "Thanks for shopping with us!"
+    },
+    "carousel": {
+      "previousSlide": "Previous slide",
+      "nextSlide": "Next slide",
+      "goToSlide": "Go to slide {number}",
+      "autoPlay": "Auto play",
+      "pauseAutoPlay": "Pause auto play"
+    }
+  }
