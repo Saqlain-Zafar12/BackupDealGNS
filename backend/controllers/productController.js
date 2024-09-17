@@ -19,10 +19,10 @@ exports.addProduct = async (req, res) => {
     category_id, brand_id, actual_price, off_percentage_value, price,
     en_title, ar_title, en_description, ar_description, attributes,
     delivery_charges, quantity, is_deal, is_hot_deal, vat_included,
-    max_quantity_per_user // Add this new field
+    max_quantity_per_user, sold // Add this new field
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !en_title || !ar_title || !max_quantity_per_user) {
+  if (!category_id || !brand_id || !actual_price || !price || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -36,12 +36,12 @@ exports.addProduct = async (req, res) => {
         category_id, brand_id, sku, actual_price, off_percentage_value, price,
         en_title, ar_title, en_description, ar_description, attributes,
         delivery_charges, quantity, image_url, tabs_image_url,
-        is_deal, is_hot_deal, vat_included, max_quantity_per_user
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19) RETURNING *`,
+        is_deal, is_hot_deal, vat_included, max_quantity_per_user, sold
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING *`,
       [category_id, brand_id, sku, actual_price, off_percentage_value, price,
        en_title, ar_title, en_description, ar_description, JSON.stringify(attributes),
        delivery_charges, quantity, mainImageUrl, JSON.stringify(tabImageUrls),
-       is_deal, is_hot_deal, vat_included, max_quantity_per_user]
+       is_deal, is_hot_deal, vat_included, max_quantity_per_user, sold]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -110,34 +110,38 @@ exports.editProduct = async (req, res) => {
     category_id, brand_id, actual_price, off_percentage_value, price,
     en_title, ar_title, en_description, ar_description, attributes,
     delivery_charges, quantity, is_deal, is_hot_deal, vat_included,
-    max_quantity_per_user // Add this new field
+    max_quantity_per_user, sold, tabs_image_url
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !en_title || !ar_title || !max_quantity_per_user) {
+  if (!category_id || !brand_id || !actual_price || !price || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  if (!Array.isArray(attributes)) {
-    return res.status(400).json({ error: 'Attributes must be an array' });
-  }
-
   try {
-    const mainImageUrl = req.files['mainImage'] ? req.files['mainImage'][0].path : null;
-    const tabImageUrls = req.files['tabImages'] ? req.files['tabImages'].map(file => file.path) : [];
+    const mainImageUrl = req.files['mainImage'] ? req.files['mainImage'][0].path : req.body.image_url;
+    
+    // Handle tab images
+    let tabImageUrls = [];
+    if (tabs_image_url) {
+      tabImageUrls = JSON.parse(tabs_image_url);
+    }
+    if (req.files['tabImages']) {
+      const newTabImages = req.files['tabImages'].map(file => file.path);
+      tabImageUrls = [...tabImageUrls, ...newTabImages];
+    }
 
     const result = await pool.query(
       `UPDATE products SET
         category_id = $1, brand_id = $2, actual_price = $3, off_percentage_value = $4,
         price = $5, en_title = $6, ar_title = $7, en_description = $8, ar_description = $9,
         attributes = $10, delivery_charges = $11, quantity = $12,
-        image_url = COALESCE($13, image_url),
-        tabs_image_url = CASE WHEN $14::text[] IS NOT NULL THEN $14::jsonb ELSE tabs_image_url END,
-        is_deal = $15, is_hot_deal = $16, vat_included = $17, max_quantity_per_user = $18, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $19 RETURNING *`,
+        image_url = $13, tabs_image_url = $14,
+        is_deal = $15, is_hot_deal = $16, vat_included = $17, max_quantity_per_user = $18, sold = $19, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $20 RETURNING *`,
       [category_id, brand_id, actual_price, off_percentage_value, price,
-       en_title, ar_title, en_description, ar_description, JSON.stringify(attributes),
+       en_title, ar_title, en_description, ar_description, attributes,
        delivery_charges, quantity, mainImageUrl, JSON.stringify(tabImageUrls),
-       is_deal, is_hot_deal, vat_included, max_quantity_per_user, id]
+       is_deal, is_hot_deal, vat_included, max_quantity_per_user, sold, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });

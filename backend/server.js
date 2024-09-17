@@ -7,6 +7,7 @@ const brandRoutes = require('./routes/brandRoutes');
 const attributesRoutes = require('./routes/attributesRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const webRelatedRoutes = require('./routes/webRelatedRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -40,6 +41,9 @@ app.use('/products', productRoutes);
 
 // Use order routes
 app.use('/orders', orderRoutes);
+
+// Use web-related routes
+app.use('/web', webRelatedRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

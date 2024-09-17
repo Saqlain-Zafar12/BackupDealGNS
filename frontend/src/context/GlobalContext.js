@@ -5,6 +5,7 @@ import { BrandProvider } from './BrandContext';
 import { ProductProvider } from './ProductContext';
 import { AttributeProvider } from './AttributesContext';
 import { OrderProvider } from './OrderContext';
+import { WebRelatedProvider } from './WebRelatedContext';
 
 export const GlobalProvider = ({ children }) => {
   return (
@@ -14,7 +15,9 @@ export const GlobalProvider = ({ children }) => {
           <ProductProvider>
             <AttributeProvider>
               <OrderProvider>
-                {children}
+                <WebRelatedProvider>
+                  {children}
+                </WebRelatedProvider>
               </OrderProvider>
             </AttributeProvider>
           </ProductProvider>

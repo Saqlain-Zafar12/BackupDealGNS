@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload } from 'antd';
-import { MinusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload, Image } from 'antd';
+import { MinusCircleOutlined, PlusOutlined, UploadOutlined, CloseOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
 import { useCategory } from '../../context/CategoryContext';
 import { useBrand } from '../../context/BrandContext';
@@ -14,13 +14,15 @@ const EditProduct = () => {
   const { id } = useParams();
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { updateProduct, getProductById } = useProduct();
+  const { updateProduct, getProductById, selectedProduct, setSelectedProduct } = useProduct();
   const { categories } = useCategory();
   const { brands } = useBrand();
   const { attributes } = useAttribute();
   const [loading, setLoading] = useState(false);
   const [mainImage, setMainImage] = useState(null);
-  const [tabImages, setTabImages] = useState([]);
+  const [existingTabImages, setExistingTabImages] = useState([]);
+  const [newTabImages, setNewTabImages] = useState([]);
+  const [existingMainImage, setExistingMainImage] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -28,15 +30,33 @@ const EditProduct = () => {
         const product = await getProductById(id);
         form.setFieldsValue({
           ...product,
-          attributes: product.attributes ? JSON.parse(product.attributes) : [],
+          attributes: Array.isArray(product.attributes) ? product.attributes : [],
         });
+        setExistingMainImage(product.image_url);
+        setExistingTabImages(product.tabs_image_url || []);
       } catch (error) {
         console.error('Error fetching product:', error);
         message.error('Failed to fetch product details');
       }
     };
     fetchProduct();
-  }, [id, form, getProductById]);
+
+    return () => setSelectedProduct(null);
+  }, [id, form, getProductById, setSelectedProduct]);
+
+  const calculateFinalPrice = (actualPrice, discountPercentage) => {
+    const discount = (actualPrice * discountPercentage) / 100;
+    return actualPrice - discount;
+  };
+
+  const handlePriceChange = () => {
+    const actualPrice = form.getFieldValue('actual_price');
+    const discountPercentage = form.getFieldValue('off_percentage_value');
+    if (actualPrice && discountPercentage) {
+      const calculatedFinalPrice = calculateFinalPrice(actualPrice, discountPercentage);
+      form.setFieldsValue({ price: parseFloat(calculatedFinalPrice.toFixed(2)) });
+    }
+  };
 
   const onFinish = async (values) => {
     setLoading(true);
@@ -53,12 +73,15 @@ const EditProduct = () => {
         delivery_charges: parseFloat(values.delivery_charges),
         quantity: parseInt(values.quantity),
         max_quantity_per_user: parseInt(values.max_quantity_per_user),
-        attributes: formattedAttributes,
+        sold: parseInt(values.sold),
+        attributes: JSON.stringify(formattedAttributes),
         mainImage: mainImage,
-        tabImages: tabImages,
+        tabImages: newTabImages.map(file => `uploads\\${file.name}`),
         is_deal: values.is_deal || false,
         is_hot_deal: values.is_hot_deal || false,
-        vat_included: values.vat_included || false
+        vat_included: values.vat_included || false,
+        image_url: existingMainImage,
+        tabs_image_url: JSON.stringify([...existingTabImages, ...newTabImages.map(file => `uploads\\${file.name}`)])
       };
 
       await updateProduct(id, formattedValues);
@@ -77,8 +100,28 @@ const EditProduct = () => {
   };
 
   const handleTabImagesUpload = ({ fileList }) => {
-    setTabImages(fileList.map(file => file.originFileObj));
+    const newImages = fileList.filter(file => file.originFileObj).map(file => file.originFileObj);
+    setNewTabImages(newImages);
   };
+  
+
+  const handleRemoveMainImage = () => {
+    setExistingMainImage(null);
+    form.setFieldsValue({ image_url: null });
+  };
+
+  const handleRemoveTabImage = (index, isExisting = true) => {
+    if (isExisting) {
+      setExistingTabImages(prev => prev.filter((_, i) => i !== index));
+    } else {
+      setNewTabImages(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const getImageUrl = (path) => {
+    return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${path}`;
+  };
+  
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -99,13 +142,31 @@ const EditProduct = () => {
           </Select>
         </Form.Item>
         <Form.Item name="actual_price" label="Actual Price" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            precision={2}
+            style={{ width: '100%' }}
+            onChange={handlePriceChange}
+          />
         </Form.Item>
         <Form.Item name="off_percentage_value" label="Discount Percentage" rules={[{ required: true }]}>
-          <InputNumber min={0} max={100} step={1} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            max={100}
+            step={1}
+            precision={2}
+            style={{ width: '100%' }}
+            onChange={handlePriceChange}
+          />
         </Form.Item>
         <Form.Item name="price" label="Final Price" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            precision={2}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
         <Form.Item name="en_title" label="English Title" rules={[{ required: true }]}>
           <Input />
@@ -191,33 +252,101 @@ const EditProduct = () => {
         </Form.List>
 
         <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            precision={2}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
         <Form.Item name="quantity" label="Total Quantity" rules={[{ required: true }]}>
-          <InputNumber min={0} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={1}
+            precision={0}
+            style={{ width: '100%' }}
+          />
+        </Form.Item>
+        <Form.Item name="sold" label="Sold Items" rules={[{ required: true }]}>
+          <InputNumber
+            min={0}
+            step={1}
+            precision={0}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
         <Form.Item name="max_quantity_per_user" label="Max Quantity Per User" rules={[{ required: true }]}>
-          <InputNumber min={1} style={{ width: '100%' }} />
+          <InputNumber
+            min={1}
+            step={1}
+            precision={0}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
 
         <Form.Item name="image_url" label="Main Image">
+          {existingMainImage && (
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: '1rem' }}>
+              <Image
+                width={200}
+                src={getImageUrl(existingMainImage)}
+                alt="Main Product Image"
+              />
+              <Button 
+                icon={<CloseOutlined />} 
+                onClick={handleRemoveMainImage}
+                style={{ position: 'absolute', top: 0, right: 0 }}
+              />
+            </div>
+          )}
           <Upload
             beforeUpload={() => false}
             onChange={handleMainImageUpload}
             maxCount={1}
           >
-            <Button icon={<UploadOutlined />}>Upload Main Image</Button>
+            <Button icon={<UploadOutlined />}>Upload New Main Image</Button>
           </Upload>
         </Form.Item>
 
         <Form.Item name="tabs_image_url" label="Tab Images">
+          <Space style={{ marginBottom: '1rem', flexWrap: 'wrap' }}>
+            {existingTabImages.map((url, index) => (
+              <div key={`existing-${index}`} style={{ position: 'relative', display: 'inline-block', marginBottom: '0.5rem' }}>
+                <Image
+                  width={100}
+                  src={getImageUrl(url)}
+                  alt={`Tab image ${index + 1}`}
+                />
+                <Button 
+                  icon={<CloseOutlined />} 
+                  onClick={() => handleRemoveTabImage(index, true)}
+                  style={{ position: 'absolute', top: 0, right: 0 }}
+                />
+              </div>
+            ))}
+            {newTabImages.map((file, index) => (
+              <div key={`new-${index}`} style={{ position: 'relative', display: 'inline-block', marginBottom: '0.5rem' }}>
+                <Image
+                  width={100}
+                  src={URL.createObjectURL(file)}
+                  alt={`New tab image ${index + 1}`}
+                />
+                <Button 
+                  icon={<CloseOutlined />} 
+                  onClick={() => handleRemoveTabImage(index, false)}
+                  style={{ position: 'absolute', top: 0, right: 0 }}
+                />
+              </div>
+            ))}
+          </Space>
           <Upload
             beforeUpload={() => false}
             onChange={handleTabImagesUpload}
             multiple
-            maxCount={5}
+            maxCount={5 - existingTabImages.length - newTabImages.length}
+            fileList={newTabImages}
           >
-            <Button icon={<UploadOutlined />}>Upload Tab Images</Button>
+            <Button icon={<UploadOutlined />}>Upload New Tab Images</Button>
           </Upload>
         </Form.Item>
 

@@ -21,31 +21,24 @@ const AddProduct = () => {
   const [mainImage, setMainImage] = useState(null);
   const [tabImages, setTabImages] = useState([]);
 
+  const calculateFinalPrice = (actualPrice, discountPercentage) => {
+    const discount = (actualPrice * discountPercentage) / 100;
+    return actualPrice - discount;
+  };
+
+  const handlePriceChange = () => {
+    const actualPrice = form.getFieldValue('actual_price');
+    const discountPercentage = form.getFieldValue('off_percentage_value');
+    if (actualPrice && discountPercentage) {
+      const calculatedFinalPrice = calculateFinalPrice(actualPrice, discountPercentage);
+      form.setFieldsValue({ price: parseFloat(calculatedFinalPrice.toFixed(2)) });
+    }
+  };
+
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const formattedAttributes = Array.isArray(values.attributes) 
-        ? values.attributes.filter(attr => attr && attr.attribute_id && attr.values && attr.values.length > 0)
-        : [];
-
-      const formattedValues = {
-        ...values,
-        actual_price: parseFloat(values.actual_price),
-        off_percentage_value: parseFloat(values.off_percentage_value),
-        price: parseFloat(values.price),
-        delivery_charges: parseFloat(values.delivery_charges),
-        quantity: parseInt(values.quantity),
-        max_quantity_per_user: parseInt(values.max_quantity_per_user),
-        attributes: formattedAttributes,
-        mainImage: mainImage,
-        tabImages: tabImages,
-        is_deal: values.is_deal || false,
-        is_hot_deal: values.is_hot_deal || false,
-        vat_included: values.vat_included || false
-      };
-
-      console.log('Formatted values being sent:', formattedValues);
-
+      const formattedValues = formatProductData(values);
       await addProduct(formattedValues);
       message.success('Product added successfully');
       navigate('/dashboard/products');
@@ -55,6 +48,29 @@ const AddProduct = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatProductData = (values) => {
+    const formattedAttributes = Array.isArray(values.attributes) 
+      ? values.attributes.filter(attr => attr && attr.attribute_id && attr.values && attr.values.length > 0)
+      : [];
+
+    return {
+      ...values,
+      actual_price: parseFloat(values.actual_price),
+      off_percentage_value: parseFloat(values.off_percentage_value),
+      price: parseFloat(values.price),
+      delivery_charges: parseFloat(values.delivery_charges),
+      quantity: parseInt(values.quantity),
+      max_quantity_per_user: parseInt(values.max_quantity_per_user),
+      sold: parseInt(values.sold),
+      attributes: formattedAttributes,
+      mainImage: mainImage,
+      tabImages: tabImages,
+      is_deal: values.is_deal || false,
+      is_hot_deal: values.is_hot_deal || false,
+      vat_included: values.vat_included || false
+    };
   };
 
   const handleMainImageUpload = (info) => {
@@ -84,13 +100,31 @@ const AddProduct = () => {
           </Select>
         </Form.Item>
         <Form.Item name="actual_price" label="Actual Price" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            precision={2}
+            style={{ width: '100%' }}
+            onChange={handlePriceChange}
+          />
         </Form.Item>
         <Form.Item name="off_percentage_value" label="Discount Percentage" rules={[{ required: true }]}>
-          <InputNumber min={0} max={100} step={1} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            max={100}
+            step={1}
+            precision={2}
+            style={{ width: '100%' }}
+            onChange={handlePriceChange}
+          />
         </Form.Item>
         <Form.Item name="price" label="Final Price" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            precision={2}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
         <Form.Item name="en_title" label="English Title" rules={[{ required: true }]}>
           <Input />
@@ -176,13 +210,36 @@ const AddProduct = () => {
         </Form.List>
 
         <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }]}>
-          <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={0.01}
+            precision={2}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
         <Form.Item name="quantity" label="Total Quantity" rules={[{ required: true }]}>
-          <InputNumber min={0} style={{ width: '100%' }} />
+          <InputNumber
+            min={0}
+            step={1}
+            precision={0}
+            style={{ width: '100%' }}
+          />
+        </Form.Item>
+        <Form.Item name="sold" label="Sold Items" rules={[{ required: true }]}>
+          <InputNumber
+            min={0}
+            step={1}
+            precision={0}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
         <Form.Item name="max_quantity_per_user" label="Max Quantity Per User" rules={[{ required: true }]}>
-          <InputNumber min={1} style={{ width: '100%' }} />
+          <InputNumber
+            min={1}
+            step={1}
+            precision={0}
+            style={{ width: '100%' }}
+          />
         </Form.Item>
 
         <Form.Item name="mainImage" label="Main Image" rules={[{ required: true }]}>

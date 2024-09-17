@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Form, Input, Select, Button, message, Layout, Row, Col, Card, Typography, Tabs } from 'antd';
 import { FaShoppingCart, FaTruck, FaPercent } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useWebRelated } from '../context/WebRelatedContext';
 
 const { Option } = Select;
 const { Content } = Layout;
@@ -11,12 +12,32 @@ const { TabPane } = Tabs;
 
 const PlaceOrder = () => {
   const { t } = useTranslation();
+  const { id } = useParams();
+  const { getWebProductDataById, createWebOrder } = useWebRelated();
+  const [productData, setProductData] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [form] = Form.useForm();
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const imageRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        const data = await getWebProductDataById(id);
+        setProductData(data);
+        // Set other state variables based on the fetched data
+      } catch (error) {
+        console.error('Error fetching product data:', error);
+        message.error(t('errors.fetchProductData'));
+      }
+    };
+
+    if (id) {
+      fetchProductData();
+    }
+  }, [id, getWebProductDataById, t]);
 
   const productImages = [
     'https://plus.unsplash.com/premium_photo-1679830513865-cd8256abe2c1?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -29,10 +50,20 @@ const PlaceOrder = () => {
 
   const productDescription = t('placeOrder.productDescription', 'Experience ultimate comfort and style with our premium product. Crafted with high-quality materials, this versatile item is perfect for everyday use. Its sleek design and durable construction ensure long-lasting performance. Whether you\'re at home or on the go, this product is sure to enhance your lifestyle.');
 
-  const onFinish = (values) => {
-    console.log('Form values:', values);
-    message.success(t('placeOrder.orderSuccess'));
-    navigate('/order-confirmation');
+  const onFinish = async (values) => {
+    try {
+      const orderData = {
+        ...values,
+        product_id: id,
+        // Add other necessary fields
+      };
+      const result = await createWebOrder(orderData);
+      message.success(t('placeOrder.orderSuccess'));
+      navigate('/order-confirmation', { state: { orderId: result.order_id } });
+    } catch (error) {
+      console.error('Error creating order:', error);
+      message.error(t('errors.createOrder'));
+    }
   };
 
   const handleImageChange = (key) => {

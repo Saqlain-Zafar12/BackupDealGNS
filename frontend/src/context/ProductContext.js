@@ -21,8 +21,10 @@ export const ProductProvider = ({ children }) => {
     setIsLoading(true);
     try {
       const headers = getAuthHeaders();
-      const activeResponse = await axios.get(`${API_URL}/products/active`, { headers });
-      const nonActiveResponse = await axios.get(`${API_URL}/products/deactivated/all`, { headers });
+      const [activeResponse, nonActiveResponse] = await Promise.all([
+        axios.get(`${API_URL}/products/active`, { headers }),
+        axios.get(`${API_URL}/products/deactivated/all`, { headers })
+      ]);
       setProducts(activeResponse.data);
       setNonActiveProducts(nonActiveResponse.data);
     } catch (error) {
@@ -38,25 +40,7 @@ export const ProductProvider = ({ children }) => {
         ...getAuthHeaders(),
         'Content-Type': 'multipart/form-data',
       };
-      const formData = new FormData();
-      Object.keys(productData).forEach(key => {
-        if (key === 'attributes') {
-          // Send an empty array directly if attributes is empty or not an array
-          const attributes = Array.isArray(productData[key]) && productData[key].length > 0
-            ? JSON.stringify(productData[key])
-            : '[]';
-          formData.append(key, attributes);
-        } else if (key === 'mainImage') {
-          formData.append('mainImage', productData[key]);       
-        } else if (key === 'tabImages') {
-          productData[key].forEach(file => formData.append('tabImages', file));
-        } else {
-          formData.append(key, productData[key]);
-        }
-      });
-      
-      console.log('FormData being sent:', Object.fromEntries(formData)); // For debugging
-
+      const formData = createFormData(productData);
       const response = await axios.post(`${API_URL}/products`, formData, { headers });
       setProducts(prevProducts => [...prevProducts, response.data]);
       return response.data;
@@ -72,25 +56,7 @@ export const ProductProvider = ({ children }) => {
         ...getAuthHeaders(),
         'Content-Type': 'multipart/form-data',
       };
-      const formData = new FormData();
-      Object.keys(productData).forEach(key => {
-        if (key === 'attributes') {
-          // Send an empty array directly if attributes is empty or not an array
-          const attributes = Array.isArray(productData[key]) && productData[key].length > 0
-            ? JSON.stringify(productData[key])
-            : '[]';
-          formData.append(key, attributes);
-        } else if (key === 'mainImage') {
-          formData.append('mainImage', productData[key]);
-        } else if (key === 'tabImages') {
-          productData[key].forEach(file => formData.append('tabImages', file));
-        } else {
-          formData.append(key, productData[key]);
-        }
-      });
-      
-      console.log('FormData being sent:', Object.fromEntries(formData)); // For debugging
-
+      const formData = createFormData(productData);
       const response = await axios.put(`${API_URL}/products/${id}`, formData, { headers });
       setProducts(prevProducts => prevProducts.map(product => product.id === id ? response.data : product));
       return response.data;
@@ -98,6 +64,22 @@ export const ProductProvider = ({ children }) => {
       console.error('Error updating product:', error);
       throw error;
     }
+  };
+
+  const createFormData = (productData) => {
+    const formData = new FormData();
+    Object.keys(productData).forEach(key => {
+      if (['attributes', 'tabs_image_url'].includes(key)) {
+        formData.append(key, productData[key]);
+      } else if (key === 'mainImage' && productData[key]) {
+        formData.append('mainImage', productData[key]);
+      } else if (key === 'tabImages' && productData[key] && productData[key].length > 0) {
+        productData[key].forEach(file => formData.append('tabImages', file));
+      } else {
+        formData.append(key, productData[key]);
+      }
+    });
+    return formData;
   };
 
   const deleteProduct = async (id) => {
@@ -111,7 +93,7 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
-  const getProductById = async (id) => {
+  const getProductById = useCallback(async (id) => {
     try {
       const headers = getAuthHeaders();
       const response = await axios.get(`${API_URL}/products/${id}`, { headers });
@@ -121,7 +103,7 @@ export const ProductProvider = ({ children }) => {
       console.error('Error fetching product:', error);
       throw error;
     }
-  };
+  }, [getAuthHeaders]);
 
   const reactivateProduct = async (id) => {
     try {

@@ -1,18 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Typography, Progress } from 'antd';
+import { Typography, Progress, message, Spin } from 'antd';
 import { FaFire, FaPercent, FaShoppingCart, FaTruck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useWebRelated } from '../context/WebRelatedContext';
 
 const { Text } = Typography;
 
 const SuperDealCard = ({ deal }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
+  if (!deal) return null;
+  console.log(deal,"deal.total_price");
   const handleCardClick = () => {
     navigate('/place-order', { state: { product: deal } });
   };
+
+  // Function to check if delivery is free
+  const isDeliveryFree = (charges) => {
+    return parseFloat(charges) <= 0.01; // Consider charges less than or equal to 0.01 as free
+  };
+
+  // Use the appropriate language title
+  const title = i18n.language === 'ar' ? deal.ar_title : deal.en_title;
 
   return (
     <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6 p-2">
@@ -22,18 +33,20 @@ const SuperDealCard = ({ deal }) => {
       >
         <div className="relative overflow-hidden">
           <img
-            src={deal.image}
-            alt={deal.name}
+          src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${deal.main_image}`} 
+            alt={title} 
             className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110"
           />
           <div className="absolute top-0 start-0 bg-red-500 text-white px-2 py-1 text-xs font-bold flex items-center">
-            <FaFire className="me-1" /> {t('superDeals.hotDeal')}
+            <FaFire className="me-1" /> {deal.hot_deal ? t('superDeals.hotDeal') : ''}
           </div>
-          <div className="absolute top-0 end-0 bg-green-500 text-white px-2 py-1 text-xs font-bold flex items-center">
-            <FaTruck className="me-1" /> {t('product.freeDelivery')}
-          </div>
+          {isDeliveryFree(deal.delivery_charges) && (
+            <div className="absolute top-0 end-0 bg-green-500 text-white px-2 py-1 text-xs font-bold flex items-center">
+              <FaTruck className="me-1" /> {t('product.freeDelivery')}
+            </div>
+          )}
           <div className="absolute bottom-0 start-0 bg-blue-500 text-white px-2 py-1 text-xs font-bold flex items-center">
-            <FaPercent className="me-1" /> {Math.round((deal.originalPrice - deal.price) / deal.originalPrice * 100)}% {t('product.off')}
+            <FaPercent className="me-1" /> {deal.discount} {t('product.off')}
           </div>
           <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
             <button className="bg-white text-gray-800 px-4 py-2 rounded-full font-bold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 flex items-center">
@@ -43,18 +56,18 @@ const SuperDealCard = ({ deal }) => {
         </div>
         <div className="p-4 flex-grow flex flex-col justify-between">
           <div>
-            <Text strong className="text-sm block truncate group-hover:text-red-500 transition-colors duration-300">{deal.name}</Text>
+            <Text strong className="text-sm block truncate group-hover:text-red-500 transition-colors duration-300">{title}</Text>
             <div className="flex justify-between items-center mt-2">
-              <Text className="text-red-500 font-bold text-lg">${deal.price}</Text>
+              <Text className="text-red-500 font-bold text-lg">{parseFloat(deal.total_price)} AED</Text>
               <Text delete type="secondary" className="text-xs">
-                ${deal.originalPrice}
+                {parseFloat(deal.actual_price)} AED
               </Text>
             </div>
           </div>
           <div className="mt-auto">
             <div className="mt-2">
               <Progress 
-                percent={deal.soldPercentage} 
+                percent={(deal.sold / deal.quantity) * 100} 
                 size="small" 
                 status="active"
                 strokeColor={{
@@ -63,7 +76,7 @@ const SuperDealCard = ({ deal }) => {
                 }}
                 format={() => (
                   <span className="text-xs flex items-center">
-                    <FaShoppingCart className="me-1" /> {deal.soldCount} {t('superDeals.sold')}
+                    <FaShoppingCart className="me-1" /> {deal.sold} {t('superDeals.sold')}
                   </span>
                 )}
               />
@@ -75,133 +88,47 @@ const SuperDealCard = ({ deal }) => {
   );
 };
 
-const superDealsData = [
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  {
-    name: "Wireless Earbuds",
-    image: "https://images.unsplash.com/photo-1711567008221-4a85cb7acc70?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    price: 29.99,
-    originalPrice: 59.99,
-    soldCount: 152,
-    soldPercentage: 76,
-  },
-  
-  // Add 5 more deals here to have a total of 6
-];
-
 const SuperDeals = () => {
   const { t } = useTranslation();
+  const { getSuperDeals } = useWebRelated();
+  const [superDealsData, setSuperDealsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchSuperDeals = async () => {
+      try {
+        setLoading(true);
+        const deals = await getSuperDeals();
+        setSuperDealsData(deals || []); // Ensure it's always an array
+        setError(null);
+      } catch (error) {
+        console.error('Error fetching super deals:', error);
+        setError(t('errors.fetchSuperDeals'));
+        message.error(t('errors.fetchSuperDeals'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuperDeals();
+  }, [getSuperDeals, t]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-red-500 p-4">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-100 py-4 sm:pb-11">
@@ -210,11 +137,17 @@ const SuperDeals = () => {
           <FaFire className="text-red-500 text-2xl sm:text-3xl mr-2" />
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">{t('superDeals.title')}</h2>
         </div>
-        <div className="flex flex-wrap -mx-2">
-          {superDealsData.map((deal, index) => (
-            <SuperDealCard key={index} deal={deal} />
-          ))}
-        </div>
+        {superDealsData.length > 0 ? (
+          <div className="flex flex-wrap -mx-2">
+            {superDealsData.map((deal, index) => (
+              <SuperDealCard key={index} deal={deal} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-gray-500 p-4">
+            {t('superDeals.noDealsAvailable')}
+          </div>
+        )}
       </div>
     </div>
   );

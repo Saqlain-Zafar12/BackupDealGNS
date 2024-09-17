@@ -5,7 +5,15 @@ import { useProduct } from '../../context/ProductContext';
 import { Link } from 'react-router-dom';
 
 const ProductList = () => {
-  const { products, deleteProduct, getProductById, selectedProduct, setSelectedProduct, isLoading, fetchProducts } = useProduct();
+  const { 
+    products, 
+    deleteProduct, 
+    getProductById, 
+    selectedProduct, 
+    setSelectedProduct, 
+    isLoading, 
+    fetchProducts 
+  } = useProduct();
 
   useEffect(() => {
     fetchProducts();
