@@ -11,6 +11,7 @@ router.use(authTokenMiddleware);
 router.get('/pending', OrderController.getPendingOrders);
 router.put('/confirm/:id', OrderController.confirmOrder);
 router.put('/cancel/:id', OrderController.cancelOrder);
+router.put('/deliver/:id', OrderController.deliverOrder); // Add this new route
 router.get('/details/:id', OrderController.getOrderDetails);
 router.get('/confirmed', OrderController.getConfirmedOrders);
 router.get('/delivered', OrderController.getDeliveredOrders);

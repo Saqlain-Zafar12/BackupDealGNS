@@ -8,6 +8,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
+  const [nonActiveProducts, setNonActiveProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -17,22 +18,46 @@ export const ProductProvider = ({ children }) => {
   }, []);
 
   const fetchProducts = useCallback(async () => {
-    if (!isLoading) return;
+    setIsLoading(true);
     try {
       const headers = getAuthHeaders();
-      const response = await axios.get(`${API_URL}/products/active`, { headers });
-      setProducts(response.data);
+      const activeResponse = await axios.get(`${API_URL}/products/active`, { headers });
+      const nonActiveResponse = await axios.get(`${API_URL}/products/deactivated/all`, { headers });
+      setProducts(activeResponse.data);
+      setNonActiveProducts(nonActiveResponse.data);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [getAuthHeaders, isLoading]);
+  }, [getAuthHeaders]);
 
   const addProduct = async (productData) => {
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.post(`${API_URL}/products`, productData, { headers });
+      const headers = {
+        ...getAuthHeaders(),
+        'Content-Type': 'multipart/form-data',
+      };
+      const formData = new FormData();
+      Object.keys(productData).forEach(key => {
+        if (key === 'attributes') {
+          // Send an empty array directly if attributes is empty or not an array
+          const attributes = Array.isArray(productData[key]) && productData[key].length > 0
+            ? JSON.stringify(productData[key])
+            : '[]';
+          formData.append(key, attributes);
+        } else if (key === 'mainImage') {
+          formData.append('mainImage', productData[key]);       
+        } else if (key === 'tabImages') {
+          productData[key].forEach(file => formData.append('tabImages', file));
+        } else {
+          formData.append(key, productData[key]);
+        }
+      });
+      
+      console.log('FormData being sent:', Object.fromEntries(formData)); // For debugging
+
+      const response = await axios.post(`${API_URL}/products`, formData, { headers });
       setProducts(prevProducts => [...prevProducts, response.data]);
       return response.data;
     } catch (error) {
@@ -43,8 +68,30 @@ export const ProductProvider = ({ children }) => {
 
   const updateProduct = async (id, productData) => {
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.put(`${API_URL}/products/${id}`, productData, { headers });
+      const headers = {
+        ...getAuthHeaders(),
+        'Content-Type': 'multipart/form-data',
+      };
+      const formData = new FormData();
+      Object.keys(productData).forEach(key => {
+        if (key === 'attributes') {
+          // Send an empty array directly if attributes is empty or not an array
+          const attributes = Array.isArray(productData[key]) && productData[key].length > 0
+            ? JSON.stringify(productData[key])
+            : '[]';
+          formData.append(key, attributes);
+        } else if (key === 'mainImage') {
+          formData.append('mainImage', productData[key]);
+        } else if (key === 'tabImages') {
+          productData[key].forEach(file => formData.append('tabImages', file));
+        } else {
+          formData.append(key, productData[key]);
+        }
+      });
+      
+      console.log('FormData being sent:', Object.fromEntries(formData)); // For debugging
+
+      const response = await axios.put(`${API_URL}/products/${id}`, formData, { headers });
       setProducts(prevProducts => prevProducts.map(product => product.id === id ? response.data : product));
       return response.data;
     } catch (error) {
@@ -56,7 +103,7 @@ export const ProductProvider = ({ children }) => {
   const deleteProduct = async (id) => {
     try {
       const headers = getAuthHeaders();
-      await axios.delete(`${API_URL}/products/${id}`, { headers });
+      await axios.put(`${API_URL}/products/deactivate/${id}`,null, { headers });
       setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
     } catch (error) {
       console.error('Error deleting product:', error);
@@ -76,15 +123,33 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  const reactivateProduct = async (id) => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await axios.put(`${API_URL}/products/activate/${id}`, null, { headers });
+      
+      // Update the products and nonActiveProducts states immediately
+      setProducts(prevProducts => [...prevProducts, response.data]);
+      setNonActiveProducts(prevNonActive => prevNonActive.filter(product => product.id !== id));
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error reactivating product:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
   const value = {
     products,
+    nonActiveProducts,
     addProduct,
     updateProduct,
     deleteProduct,
+    reactivateProduct,
     fetchProducts,
     isLoading,
     getProductById,

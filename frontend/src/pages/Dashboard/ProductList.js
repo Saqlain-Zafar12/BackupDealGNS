@@ -1,17 +1,21 @@
-import React from 'react';
-import { Table, Button, Space, message, Modal } from 'antd';
+import React, { useEffect } from 'react';
+import { Table, Button, Space, message, Modal, Image } from 'antd';
 import { EditOutlined, EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
 import { Link } from 'react-router-dom';
 
 const ProductList = () => {
-  const { products, updateProduct, getProductById, selectedProduct, setSelectedProduct, isLoading } = useProduct();
+  const { products, deleteProduct, getProductById, selectedProduct, setSelectedProduct, isLoading, fetchProducts } = useProduct();
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleDeactivate = async (id) => {
     try {
-      await updateProduct(id, { is_active: false });
+      await deleteProduct(id);
       message.success('Product deactivated successfully');
-    } catch (error) {
+    } catch (error) {   
       message.error('Failed to deactivate product');
     }
   };
@@ -47,6 +51,11 @@ const ProductList = () => {
       key: 'quantity',
     },
     {
+      title: 'Max Quantity Per User',
+      dataIndex: 'max_quantity_per_user',
+      key: 'max_quantity_per_user',
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
@@ -59,6 +68,7 @@ const ProductList = () => {
         </Space>
       ),
     },
+   
   ];
 
   const handleCloseModal = () => {
@@ -70,7 +80,7 @@ const ProductList = () => {
       <h2 className="text-2xl font-semibold mb-4">Product List</h2>
       <Table 
         columns={columns} 
-        dataSource={products.filter(product => product.is_active)} 
+        dataSource={products} 
         rowKey="id" 
         loading={isLoading}
       />
@@ -83,31 +93,57 @@ const ProductList = () => {
       >
         {selectedProduct && (
           <div>
+            <h3>Main Image:</h3>
+            {selectedProduct.image_url ? (
+              <Image
+                width={200}
+                src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${selectedProduct.image_url}`}
+                alt={selectedProduct.en_title}
+              />
+            ) : (
+              <p>No main image available</p>
+            )}
+
+            <h3>Tab Images:</h3>
+            {selectedProduct.tabs_image_url && Object.keys(selectedProduct.tabs_image_url).length > 0 ? (
+              <Image.PreviewGroup>
+                <Space>
+                  {Object.values(selectedProduct.tabs_image_url).map((url, index) => (
+                    <Image
+                      key={index}
+                      width={100}
+                      src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${url}`}
+                      alt={`Tab image ${index + 1}`}
+                    />
+                  ))}
+                </Space>
+              </Image.PreviewGroup>
+            ) : (
+              <p>No tab images available</p>
+            )}
+
             <p><strong>English Title:</strong> {selectedProduct.en_title}</p>
             <p><strong>Arabic Title:</strong> {selectedProduct.ar_title}</p>
             <p><strong>Price:</strong> ${parseFloat(selectedProduct.price).toFixed(2)}</p>
             <p><strong>Stock:</strong> {selectedProduct.quantity}</p>
             <p><strong>English Description:</strong> {selectedProduct.en_description}</p>
             <p><strong>Arabic Description:</strong> {selectedProduct.ar_description}</p>
-            <h3>English Attributes:</h3>
-            <ul>
-              {selectedProduct.en_attributes.map((attr, index) => (
-                <li key={index}>
-                  {attr.attribute_name}: {attr.values.join(', ')}
-                </li>
-              ))}
-            </ul>
-            <h3>Arabic Attributes:</h3>
-            <ul>
-              {selectedProduct.ar_attributes.map((attr, index) => (
-                <li key={index}>
-                  {attr.attribute_name}: {attr.values.join(', ')}
-                </li>
-              ))}
-            </ul>
+            <h3>Attributes:</h3>
+            {selectedProduct.attributes && Array.isArray(selectedProduct.attributes) ? (
+              <ul>
+                {selectedProduct.attributes.map((attr, index) => (
+                  <li key={index}>
+                    {attr.attribute_id}: {attr.values.join(', ')}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No attributes available</p>
+            )}
             <p><strong>Is Deal:</strong> {selectedProduct.is_deal ? 'Yes' : 'No'}</p>
             <p><strong>Is Hot Deal:</strong> {selectedProduct.is_hot_deal ? 'Yes' : 'No'}</p>
             <p><strong>VAT Included:</strong> {selectedProduct.vat_included ? 'Yes' : 'No'}</p>
+            <p><strong>Max Quantity Per User:</strong> {selectedProduct.max_quantity_per_user}</p>
           </div>
         )}
       </Modal>

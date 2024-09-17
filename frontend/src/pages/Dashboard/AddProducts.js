@@ -5,21 +5,29 @@ import { useProduct } from '../../context/ProductContext';
 import { useCategory } from '../../context/CategoryContext';
 import { useBrand } from '../../context/BrandContext';
 import { useAttribute } from '../../context/AttributesContext';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 const AddProduct = () => {
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   const { addProduct } = useProduct();
   const { categories } = useCategory();
   const { brands } = useBrand();
   const { attributes } = useAttribute();
   const [loading, setLoading] = useState(false);
+  const [mainImage, setMainImage] = useState(null);
+  const [tabImages, setTabImages] = useState([]);
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      const formattedAttributes = Array.isArray(values.attributes) 
+        ? values.attributes.filter(attr => attr && attr.attribute_id && attr.values && attr.values.length > 0)
+        : [];
+
       const formattedValues = {
         ...values,
         actual_price: parseFloat(values.actual_price),
@@ -27,33 +35,40 @@ const AddProduct = () => {
         price: parseFloat(values.price),
         delivery_charges: parseFloat(values.delivery_charges),
         quantity: parseInt(values.quantity),
-        en_attributes: values.en_attributes?.map(attr => ({
-          ...attr,
-          values: attr.values.split(',').map(v => v.trim())
-        })) || [],
-        ar_attributes: values.ar_attributes?.map(attr => ({
-          ...attr,
-          values: attr.values.split(',').map(v => v.trim())
-        })) || [],
-        tabs_image_url: { tab1: values.tab1_image_url },
+        max_quantity_per_user: parseInt(values.max_quantity_per_user),
+        attributes: formattedAttributes,
+        mainImage: mainImage,
+        tabImages: tabImages,
         is_deal: values.is_deal || false,
         is_hot_deal: values.is_hot_deal || false,
         vat_included: values.vat_included || false
       };
+
+      console.log('Formatted values being sent:', formattedValues);
+
       await addProduct(formattedValues);
       message.success('Product added successfully');
-      form.resetFields();
+      navigate('/dashboard/products');
     } catch (error) {
+      console.error('Error adding product:', error);
       message.error('Failed to add product: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleMainImageUpload = (info) => {
+    setMainImage(info.file);
+  };
+
+  const handleTabImagesUpload = ({ fileList }) => {
+    setTabImages(fileList.map(file => file.originFileObj));
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <h2 className="text-2xl font-semibold mb-4">Add Product</h2>
-      <Form form={form} onFinish={onFinish} layout="vertical">
+      <Form form={form} onFinish={onFinish} layout="vertical" initialValues={{ attributes: [] }}>
         <Form.Item name="category_id" label="Category" rules={[{ required: true }]}>
           <Select placeholder="Select a category">
             {categories.map(category => (
@@ -90,70 +105,70 @@ const AddProduct = () => {
           <TextArea rows={4} />
         </Form.Item>
 
-        <Form.List name="en_attributes">
+        <Form.List name="attributes">
           {(fields, { add, remove }) => (
             <>
               {fields.map(({ key, name, ...restField }) => (
-                <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'attribute_id']}
-                    rules={[{ required: true, message: 'Missing attribute' }]}
-                  >
-                    <Select style={{ width: 130 }} placeholder="Attribute">
-                      {attributes.map(attr => (
-                        <Option key={attr.id} value={attr.id}>{attr.en_attribute_name}</Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'values']}
-                    rules={[{ required: true, message: 'Missing values' }]}
-                  >
-                    <Input placeholder="Values (comma-separated)" style={{ width: 200 }} />
-                  </Form.Item>
-                  <MinusCircleOutlined onClick={() => remove(name)} />
+                <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline" direction="vertical">
+                  <Space>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'attribute_id']}
+                      rules={[{ required: true, message: 'Missing attribute' }]}
+                    >
+                      <Select style={{ width: 130 }} placeholder="Attribute">
+                        {attributes.map(attr => (
+                          <Option key={attr.id} value={attr.id}>{attr.en_attribute_name}</Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  </Space>
+                  <Form.List name={[name, 'values']}>
+                    {(subFields, subOps) => (
+                      <>
+                        {subFields.map((subField, index) => (
+                          <Space key={subField.key}>
+                            <Form.Item
+                              {...subField}
+                              validateTrigger={['onChange', 'onBlur']}
+                              rules={[
+                                {
+                                  required: true,
+                                  whitespace: true,
+                                  message: "Please input attribute value or delete this field.",
+                                },
+                              ]}
+                              noStyle
+                            >
+                              <Input placeholder="English-Arabic value" style={{ width: '60%' }} />
+                            </Form.Item>
+                            {subFields.length > 1 ? (
+                              <MinusCircleOutlined
+                                className="dynamic-delete-button"
+                                onClick={() => subOps.remove(subField.name)}
+                              />
+                            ) : null}
+                          </Space>
+                        ))}
+                        <Form.Item>
+                          <Button
+                            type="dashed"
+                            onClick={() => subOps.add()}
+                            block
+                            icon={<PlusOutlined />}
+                          >
+                            Add value
+                          </Button>
+                        </Form.Item>
+                      </>
+                    )}
+                  </Form.List>
                 </Space>
               ))}
               <Form.Item>
                 <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                  Add English Attribute
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
-
-        <Form.List name="ar_attributes">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'attribute_id']}
-                    rules={[{ required: true, message: 'Missing attribute' }]}
-                  >
-                    <Select style={{ width: 130 }} placeholder="Attribute">
-                      {attributes.map(attr => (
-                        <Option key={attr.id} value={attr.id}>{attr.ar_attribute_name}</Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                  <Form.Item
-                    {...restField}
-                    name={[name, 'values']}
-                    rules={[{ required: true, message: 'Missing values' }]}
-                  >
-                    <Input placeholder="Values (comma-separated)" style={{ width: 200 }} />
-                  </Form.Item>
-                  <MinusCircleOutlined onClick={() => remove(name)} />
-                </Space>
-              ))}
-              <Form.Item>
-                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                  Add Arabic Attribute
+                  Add Attribute
                 </Button>
               </Form.Item>
             </>
@@ -163,15 +178,34 @@ const AddProduct = () => {
         <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }]}>
           <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="quantity" label="Quantity" rules={[{ required: true }]}>
+        <Form.Item name="quantity" label="Total Quantity" rules={[{ required: true }]}>
           <InputNumber min={0} style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="image_url" label="Image URL" rules={[{ required: true }]}>
-          <Input />
+        <Form.Item name="max_quantity_per_user" label="Max Quantity Per User" rules={[{ required: true }]}>
+          <InputNumber min={1} style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="tab1_image_url" label="Tab 1 Image URL">
-          <Input />
+
+        <Form.Item name="mainImage" label="Main Image" rules={[{ required: true }]}>
+          <Upload
+            beforeUpload={() => false}
+            onChange={handleMainImageUpload}
+            maxCount={1}
+          >
+            <Button icon={<UploadOutlined />}>Upload Main Image</Button>
+          </Upload>
         </Form.Item>
+
+        <Form.Item name="tabImages" label="Tab Images">
+          <Upload
+            beforeUpload={() => false}
+            onChange={handleTabImagesUpload}
+            multiple
+            maxCount={5}
+          >
+            <Button icon={<UploadOutlined />}>Upload Tab Images</Button>
+          </Upload>
+        </Form.Item>
+
         <Form.Item name="is_deal" label="Is Deal" valuePropName="checked">
           <Switch />
         </Form.Item>

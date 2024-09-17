@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiEye, FiCheckCircle, FiX } from 'react-icons/fi';
-import { Modal, Button, Table } from 'antd';
+import { Modal, Button, Table, message } from 'antd';
+import { useOrder } from '../../context/OrderContext';
 
 const OrderList = () => {
+  const { pendingOrders, isLoading, fetchPendingOrders, confirmOrder, cancelOrder, getOrderDetails } = useOrder();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // Mock data - replace with actual data fetching logic
-  const orders = [
-    { id: 1, customerName: 'John Doe', total: 59.97, items: 3, date: '2023-05-01' },
-    { id: 2, customerName: 'Jane Smith', total: 89.98, items: 4, date: '2023-05-02' },
-    { id: 3, customerName: 'Bob Johnson', total: 39.99, items: 2, date: '2023-05-03' },
-  ];
+  useEffect(() => {
+    fetchPendingOrders();
+  }, [fetchPendingOrders]);
 
-  const showModal = (order) => {
-    setSelectedOrder(order);
-    setIsModalVisible(true);
+  const showModal = async (orderId) => {
+    try {
+      const orderDetails = await getOrderDetails(orderId);
+      setSelectedOrder(orderDetails);
+      setIsModalVisible(true);
+    } catch (error) {
+      message.error('Failed to fetch order details');
+    }
   };
 
   const handleOk = () => {
@@ -26,6 +30,24 @@ const OrderList = () => {
     setIsModalVisible(false);
   };
 
+  const handleConfirmOrder = async (id) => {
+    try {
+      await confirmOrder(id);
+      message.success('Order confirmed successfully');
+    } catch (error) {
+      message.error('Failed to confirm order');
+    }
+  };
+
+  const handleCancelOrder = async (id) => {
+    try {
+      await cancelOrder(id);
+      message.success('Order cancelled successfully');
+    } catch (error) {
+      message.error('Failed to cancel order');
+    }
+  };
+
   const columns = [
     {
       title: 'Order ID',
@@ -34,25 +56,27 @@ const OrderList = () => {
     },
     {
       title: 'Customer',
-      dataIndex: 'customerName',
-      key: 'customerName',
+      dataIndex: 'full_name',
+      key: 'full_name',
       ellipsis: true,
     },
     {
       title: 'Total',
-      dataIndex: 'total',
-      key: 'total',
-      render: (total) => `$${total.toFixed(2)}`,
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render: (quantity) => (quantity ? quantity : 'N/A'),
     },
     {
       title: 'Items',
-      dataIndex: 'items',
-      key: 'items',
+      dataIndex: 'product_id',
+      key: 'product_id',
+      render: (product_id) => (product_id ? product_id : 'N/A'),
     },
     {
       title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (created_at) => (created_at ? new Date(created_at).toLocaleDateString() : 'N/A'),
     },
     {
       title: 'Actions',
@@ -61,17 +85,17 @@ const OrderList = () => {
         <div className="flex space-x-2">
           <Button
             icon={<FiEye />}
-            onClick={() => showModal(record)}
+            onClick={() => showModal(record.id)}
             className="text-blue-600 hover:text-blue-800"
           />
           <Button
             icon={<FiCheckCircle />}
-            onClick={() => console.log('Confirm order', record.id)}
+            onClick={() => handleConfirmOrder(record.id)}
             className="text-green-600 hover:text-green-800"
           />
           <Button
             icon={<FiX />}
-            onClick={() => console.log('Cancel order', record.id)}
+            onClick={() => handleCancelOrder(record.id)}
             className="text-red-600 hover:text-red-800"
           />
         </div>
@@ -81,15 +105,16 @@ const OrderList = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-semibold mb-4">Order List</h2>
+      <h2 className="text-2xl font-semibold mb-4">Pending Order List</h2>
       <div className="overflow-x-auto">
         <Table 
           columns={columns} 
-          dataSource={orders} 
+          dataSource={pendingOrders} 
           rowKey="id"
           pagination={{ pageSize: 10 }}
           className="min-w-full"
           scroll={{ x: true }}
+          loading={isLoading}
         />
       </div>
 
@@ -106,12 +131,15 @@ const OrderList = () => {
       >
         {selectedOrder && (
           <div className="space-y-2">
-            <p><strong>Order ID:</strong> {selectedOrder.id}</p>
-            <p><strong>Customer Name:</strong> {selectedOrder.customerName}</p>
-            <p><strong>Total:</strong> ${selectedOrder.total.toFixed(2)}</p>
-            <p><strong>Items:</strong> {selectedOrder.items}</p>
-            <p><strong>Date:</strong> {selectedOrder.date}</p>
-            {/* Add more order details here */}
+            <p><strong>Order ID:</strong> {selectedOrder.id || 'N/A'}</p>
+            <p><strong>Customer Name:</strong> {selectedOrder.full_name || 'N/A'}</p>
+            <p><strong>Quantity:</strong> {selectedOrder.quantity || 'N/A'}</p>
+            <p><strong>Product ID:</strong> {selectedOrder.product_id || 'N/A'}</p>
+            <p><strong>Date:</strong> {selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString() : 'N/A'}</p>
+            <p><strong>Mobile Number:</strong> {selectedOrder.mobilenumber || 'N/A'}</p>
+            <p><strong>Emirates:</strong> {selectedOrder.selected_emirates || 'N/A'}</p>
+            <p><strong>Delivery Address:</strong> {selectedOrder.delivery_address || 'N/A'}</p>
+            <p><strong>Selected Attributes:</strong> {selectedOrder.selected_attributes || 'N/A'}</p>
           </div>
         )}
       </Modal>

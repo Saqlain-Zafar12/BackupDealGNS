@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { Table, Button, Space, Modal } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Table, Button, Space, Modal, message } from 'antd';
 import { EyeOutlined, CarOutlined } from '@ant-design/icons';
+import { useOrder } from '../../context/OrderContext';
 
 const ConfirmOrderList = () => {
+  const { confirmedOrders, isLoading, fetchConfirmedOrders, getOrderDetails, deliverOrder } = useOrder();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const confirmedOrders = [
-    { id: 1, customerName: 'Alice Brown', total: 79.97, items: 3, date: '2023-05-04' },
-    { id: 2, customerName: 'Charlie Davis', total: 109.98, items: 5, date: '2023-05-05' },
-    { id: 3, customerName: 'Eva Fisher', total: 49.99, items: 2, date: '2023-05-06' },
-  ];
+  useEffect(() => {
+    fetchConfirmedOrders();
+  }, [fetchConfirmedOrders]);
 
-  const showModal = (order) => {
-    setSelectedOrder(order);
-    setIsModalVisible(true);
+  const showModal = async (orderId) => {
+    try {
+      const orderDetails = await getOrderDetails(orderId);
+      setSelectedOrder(orderDetails);
+      setIsModalVisible(true);
+    } catch (error) {
+      message.error('Failed to fetch order details');
+    }
   };
 
   const handleOk = () => {
@@ -25,6 +30,16 @@ const ConfirmOrderList = () => {
     setIsModalVisible(false);
   };
 
+  const handleDeliverOrder = async (id) => {
+    try {
+      await deliverOrder(id);
+      message.success('Order marked as delivered successfully');
+      fetchConfirmedOrders(); // Refresh the list after delivering an order
+    } catch (error) {
+      message.error('Failed to mark order as delivered');
+    }
+  };
+
   const columns = [
     {
       title: 'Order ID',
@@ -32,33 +47,38 @@ const ConfirmOrderList = () => {
       key: 'id',
     },
     {
-      title: 'Customer Name',
-      dataIndex: 'customerName',
-      key: 'customerName',
+      title: 'Customer',
+      dataIndex: 'full_name',
+      key: 'full_name',
+      ellipsis: true,
     },
     {
-      title: 'Total',
-      dataIndex: 'total',
-      key: 'total',
-      render: (total) => `$${total.toFixed(2)}`,
+      title: 'Quantity',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render: (quantity) => (quantity ? quantity : 'N/A'),
     },
     {
-      title: 'Items',
-      dataIndex: 'items',
-      key: 'items',
+      title: 'Product ID',
+      dataIndex: 'product_id',
+      key: 'product_id',
+      render: (product_id) => (product_id ? product_id : 'N/A'),
     },
     {
       title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (created_at) => (created_at ? new Date(created_at).toLocaleDateString() : 'N/A'),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space size="middle">
-          <Button icon={<EyeOutlined />} onClick={() => showModal(record)} />
-          <Button icon={<CarOutlined />} onClick={() => console.log('Ship', record.id)} />
+          <Button icon={<EyeOutlined />} onClick={() => showModal(record.id)} />
+          <Button onClick={() => handleDeliverOrder(record.id)}>
+          <CarOutlined />
+          </Button>
         </Space>
       ),
     },
@@ -67,7 +87,7 @@ const ConfirmOrderList = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Confirmed Order List</h2>
-      <Table columns={columns} dataSource={confirmedOrders} rowKey="id" />
+      <Table columns={columns} dataSource={confirmedOrders} rowKey="id" loading={isLoading} />
       <Modal
         title="Order Details"
         visible={isModalVisible}
@@ -76,11 +96,15 @@ const ConfirmOrderList = () => {
       >
         {selectedOrder && (
           <div>
-            <p><strong>Order ID:</strong> {selectedOrder.id}</p>
-            <p><strong>Customer Name:</strong> {selectedOrder.customerName}</p>
-            <p><strong>Total:</strong> ${selectedOrder.total.toFixed(2)}</p>
-            <p><strong>Items:</strong> {selectedOrder.items}</p>
-            <p><strong>Date:</strong> {selectedOrder.date}</p>
+            <p><strong>Order ID:</strong> {selectedOrder.id || 'N/A'}</p>
+            <p><strong>Customer Name:</strong> {selectedOrder.full_name || 'N/A'}</p>
+            <p><strong>Quantity:</strong> {selectedOrder.quantity || 'N/A'}</p>
+            <p><strong>Product ID:</strong> {selectedOrder.product_id || 'N/A'}</p>
+            <p><strong>Date:</strong> {selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString() : 'N/A'}</p>
+            <p><strong>Mobile Number:</strong> {selectedOrder.mobilenumber || 'N/A'}</p>
+            <p><strong>Emirates:</strong> {selectedOrder.selected_emirates || 'N/A'}</p>
+            <p><strong>Delivery Address:</strong> {selectedOrder.delivery_address || 'N/A'}</p>
+            <p><strong>Selected Attributes:</strong> {selectedOrder.selected_attributes || 'N/A'}</p>
           </div>
         )}
       </Modal>

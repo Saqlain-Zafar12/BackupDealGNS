@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, InputNumber, Select, Button, message, Space, Switch } from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload } from 'antd';
+import { MinusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
 import { useCategory } from '../../context/CategoryContext';
 import { useBrand } from '../../context/BrandContext';
@@ -12,13 +12,15 @@ const { TextArea } = Input;
 
 const EditProduct = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [form] = Form.useForm();
-  const { getProductById, updateProduct } = useProduct();
+  const navigate = useNavigate();
+  const { updateProduct, getProductById } = useProduct();
   const { categories } = useCategory();
   const { brands } = useBrand();
   const { attributes } = useAttribute();
   const [loading, setLoading] = useState(false);
+  const [mainImage, setMainImage] = useState(null);
+  const [tabImages, setTabImages] = useState([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -26,26 +28,23 @@ const EditProduct = () => {
         const product = await getProductById(id);
         form.setFieldsValue({
           ...product,
-          en_attributes: product.en_attributes.map(attr => ({
-            ...attr,
-            values: attr.values || []
-          })),
-          ar_attributes: product.ar_attributes.map(attr => ({
-            ...attr,
-            values: attr.values || []
-          }))
+          attributes: product.attributes ? JSON.parse(product.attributes) : [],
         });
       } catch (error) {
+        console.error('Error fetching product:', error);
         message.error('Failed to fetch product details');
-        navigate('/dashboard/products');
       }
     };
     fetchProduct();
-  }, [id, form, getProductById, navigate]);
+  }, [id, form, getProductById]);
 
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      const formattedAttributes = Array.isArray(values.attributes) 
+        ? values.attributes.filter(attr => attr && attr.attribute_id && attr.values && attr.values.length > 0)
+        : [];
+
       const formattedValues = {
         ...values,
         actual_price: parseFloat(values.actual_price),
@@ -53,21 +52,32 @@ const EditProduct = () => {
         price: parseFloat(values.price),
         delivery_charges: parseFloat(values.delivery_charges),
         quantity: parseInt(values.quantity),
-        en_attributes: values.en_attributes || [],
-        ar_attributes: values.ar_attributes || [],
-        tabs_image_url: { tab1: values.tab1_image_url },
+        max_quantity_per_user: parseInt(values.max_quantity_per_user),
+        attributes: formattedAttributes,
+        mainImage: mainImage,
+        tabImages: tabImages,
         is_deal: values.is_deal || false,
         is_hot_deal: values.is_hot_deal || false,
         vat_included: values.vat_included || false
       };
+
       await updateProduct(id, formattedValues);
       message.success('Product updated successfully');
       navigate('/dashboard/products');
     } catch (error) {
+      console.error('Error updating product:', error);
       message.error('Failed to update product: ' + error.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMainImageUpload = (info) => {
+    setMainImage(info.file);
+  };
+
+  const handleTabImagesUpload = ({ fileList }) => {
+    setTabImages(fileList.map(file => file.originFileObj));
   };
 
   return (
@@ -110,7 +120,7 @@ const EditProduct = () => {
           <TextArea rows={4} />
         </Form.Item>
 
-        <Form.List name="en_attributes">
+        <Form.List name="attributes">
           {(fields, { add, remove }) => (
             <>
               {fields.map(({ key, name, ...restField }) => (
@@ -146,7 +156,7 @@ const EditProduct = () => {
                               ]}
                               noStyle
                             >
-                              <Input placeholder="Attribute value" style={{ width: '60%' }} />
+                              <Input placeholder="English-Arabic value" style={{ width: '60%' }} />
                             </Form.Item>
                             {subFields.length > 1 ? (
                               <MinusCircleOutlined
@@ -173,77 +183,7 @@ const EditProduct = () => {
               ))}
               <Form.Item>
                 <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                  Add English Attribute
-                </Button>
-              </Form.Item>
-            </>
-          )}
-        </Form.List>
-
-        <Form.List name="ar_attributes">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline" direction="vertical">
-                  <Space>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'attribute_id']}
-                      rules={[{ required: true, message: 'Missing attribute' }]}
-                    >
-                      <Select style={{ width: 130 }} placeholder="Attribute">
-                        {attributes.map(attr => (
-                          <Option key={attr.id} value={attr.id}>{attr.ar_attribute_name}</Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                    <MinusCircleOutlined onClick={() => remove(name)} />
-                  </Space>
-                  <Form.List name={[name, 'values']}>
-                    {(subFields, subOps) => (
-                      <>
-                        {subFields.map((subField, index) => (
-                          <Space key={subField.key}>
-                            <Form.Item
-                              {...subField}
-                              validateTrigger={['onChange', 'onBlur']}
-                              rules={[
-                                {
-                                  required: true,
-                                  whitespace: true,
-                                  message: "Please input attribute value or delete this field.",
-                                },
-                              ]}
-                              noStyle
-                            >
-                              <Input placeholder="Attribute value" style={{ width: '60%' }} />
-                            </Form.Item>
-                            {subFields.length > 1 ? (
-                              <MinusCircleOutlined
-                                className="dynamic-delete-button"
-                                onClick={() => subOps.remove(subField.name)}
-                              />
-                            ) : null}
-                          </Space>
-                        ))}
-                        <Form.Item>
-                          <Button
-                            type="dashed"
-                            onClick={() => subOps.add()}
-                            block
-                            icon={<PlusOutlined />}
-                          >
-                            Add value
-                          </Button>
-                        </Form.Item>
-                      </>
-                    )}
-                  </Form.List>
-                </Space>
-              ))}
-              <Form.Item>
-                <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                  Add Arabic Attribute
+                  Add Attribute
                 </Button>
               </Form.Item>
             </>
@@ -253,15 +193,34 @@ const EditProduct = () => {
         <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }]}>
           <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="quantity" label="Quantity" rules={[{ required: true }]}>
+        <Form.Item name="quantity" label="Total Quantity" rules={[{ required: true }]}>
           <InputNumber min={0} style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="image_url" label="Image URL" rules={[{ required: true }]}>
-          <Input />
+        <Form.Item name="max_quantity_per_user" label="Max Quantity Per User" rules={[{ required: true }]}>
+          <InputNumber min={1} style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item name="tab1_image_url" label="Tab 1 Image URL">
-          <Input />
+
+        <Form.Item name="image_url" label="Main Image">
+          <Upload
+            beforeUpload={() => false}
+            onChange={handleMainImageUpload}
+            maxCount={1}
+          >
+            <Button icon={<UploadOutlined />}>Upload Main Image</Button>
+          </Upload>
         </Form.Item>
+
+        <Form.Item name="tabs_image_url" label="Tab Images">
+          <Upload
+            beforeUpload={() => false}
+            onChange={handleTabImagesUpload}
+            multiple
+            maxCount={5}
+          >
+            <Button icon={<UploadOutlined />}>Upload Tab Images</Button>
+          </Upload>
+        </Form.Item>
+
         <Form.Item name="is_deal" label="Is Deal" valuePropName="checked">
           <Switch />
         </Form.Item>

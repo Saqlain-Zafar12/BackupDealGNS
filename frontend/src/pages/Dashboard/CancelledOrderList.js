@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Table, Button, Modal, message } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
+import { useOrder } from '../../context/OrderContext';
 
 const CancelledOrderList = () => {
+  const { cancelledOrders, isLoading, fetchCancelledOrders, getOrderDetails } = useOrder();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const cancelledOrders = [
-    { id: 1, customerName: 'Alice Johnson', total: 89.97, items: 3, date: '2023-05-10', cancelReason: 'Changed mind' },
-    { id: 2, customerName: 'Bob Smith', total: 129.98, items: 5, date: '2023-05-11', cancelReason: 'Found better price' },
-    { id: 3, customerName: 'Charlie Brown', total: 59.99, items: 2, date: '2023-05-12', cancelReason: 'Ordered by mistake' },
-  ];
+  useEffect(() => {
+    fetchCancelledOrders();
+  }, [fetchCancelledOrders]);
 
-  const showModal = (order) => {
-    setSelectedOrder(order);
-    setIsModalVisible(true);
+  const showModal = async (orderId) => {
+    try {
+      const orderDetails = await getOrderDetails(orderId);
+      setSelectedOrder(orderDetails);
+      setIsModalVisible(true);
+    } catch (error) {
+      message.error('Failed to fetch order details');
+    }
   };
 
   const handleOk = () => {
@@ -32,36 +37,34 @@ const CancelledOrderList = () => {
       key: 'id',
     },
     {
-      title: 'Customer Name',
-      dataIndex: 'customerName',
-      key: 'customerName',
+      title: 'Customer',
+      dataIndex: 'full_name',
+      key: 'full_name',
+      ellipsis: true,
     },
     {
-      title: 'Total',
-      dataIndex: 'total',
-      key: 'total',
-      render: (total) => `$${total.toFixed(2)}`,
+      title: 'Quantity',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      render: (quantity) => (quantity ? quantity : 'N/A'),
     },
     {
-      title: 'Items',
-      dataIndex: 'items',
-      key: 'items',
+      title: 'Product ID',
+      dataIndex: 'product_id',
+      key: 'product_id',
+      render: (product_id) => (product_id ? product_id : 'N/A'),
     },
     {
       title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-    },
-    {
-      title: 'Cancel Reason',
-      dataIndex: 'cancelReason',
-      key: 'cancelReason',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (created_at) => (created_at ? new Date(created_at).toLocaleDateString() : 'N/A'),
     },
     {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
-        <Button icon={<EyeOutlined />} onClick={() => showModal(record)} />
+        <Button icon={<EyeOutlined />} onClick={() => showModal(record.id)} />
       ),
     },
   ];
@@ -69,7 +72,7 @@ const CancelledOrderList = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Cancelled Order List</h2>
-      <Table columns={columns} dataSource={cancelledOrders} rowKey="id" />
+      <Table columns={columns} dataSource={cancelledOrders} rowKey="id" loading={isLoading} />
       <Modal
         title="Order Details"
         visible={isModalVisible}
@@ -78,12 +81,15 @@ const CancelledOrderList = () => {
       >
         {selectedOrder && (
           <div>
-            <p><strong>Order ID:</strong> {selectedOrder.id}</p>
-            <p><strong>Customer Name:</strong> {selectedOrder.customerName}</p>
-            <p><strong>Total:</strong> ${selectedOrder.total.toFixed(2)}</p>
-            <p><strong>Items:</strong> {selectedOrder.items}</p>
-            <p><strong>Date:</strong> {selectedOrder.date}</p>
-            <p><strong>Cancel Reason:</strong> {selectedOrder.cancelReason}</p>
+            <p><strong>Order ID:</strong> {selectedOrder.id || 'N/A'}</p>
+            <p><strong>Customer Name:</strong> {selectedOrder.full_name || 'N/A'}</p>
+            <p><strong>Quantity:</strong> {selectedOrder.quantity || 'N/A'}</p>
+            <p><strong>Product ID:</strong> {selectedOrder.product_id || 'N/A'}</p>
+            <p><strong>Date:</strong> {selectedOrder.created_at ? new Date(selectedOrder.created_at).toLocaleString() : 'N/A'}</p>
+            <p><strong>Mobile Number:</strong> {selectedOrder.mobilenumber || 'N/A'}</p>
+            <p><strong>Emirates:</strong> {selectedOrder.selected_emirates || 'N/A'}</p>
+            <p><strong>Delivery Address:</strong> {selectedOrder.delivery_address || 'N/A'}</p>
+            <p><strong>Selected Attributes:</strong> {selectedOrder.selected_attributes || 'N/A'}</p>
           </div>
         )}
       </Modal>

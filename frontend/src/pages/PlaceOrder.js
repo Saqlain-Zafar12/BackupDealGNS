@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 const { Content } = Layout;
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const PlaceOrder = () => {
@@ -26,6 +26,8 @@ const PlaceOrder = () => {
      'https://images.unsplash.com/photo-1711700357997-7dd71318d2bd?q=80&w=1475&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
 
   ];
+
+  const productDescription = t('placeOrder.productDescription', 'Experience ultimate comfort and style with our premium product. Crafted with high-quality materials, this versatile item is perfect for everyday use. Its sleek design and durable construction ensure long-lasting performance. Whether you\'re at home or on the go, this product is sure to enhance your lifestyle.');
 
   const onFinish = (values) => {
     console.log('Form values:', values);
@@ -122,6 +124,9 @@ const PlaceOrder = () => {
                       </Text>
                     </Col>
                   </Row>
+                  <Paragraph className="mt-4">
+                    {productDescription}
+                  </Paragraph>
                 </div>
               </Card>
             </Col>

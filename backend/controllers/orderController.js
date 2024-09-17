@@ -118,3 +118,22 @@ exports.getCancelledOrders = async (req, res) => {
     res.status(500).json({ error: 'Error fetching cancelled orders', details: err.message });
   }
 };
+
+// Add this new function to the existing file
+
+exports.deliverOrder = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      'UPDATE orders SET order_type = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      ['delivered', id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error delivering order:', err);
+    res.status(500).json({ error: 'Error delivering order', details: err.message });
+  }
+};
