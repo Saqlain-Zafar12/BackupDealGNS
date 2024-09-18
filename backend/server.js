@@ -49,6 +49,8 @@ app.use('/web', webRelatedRoutes);
 // Use dashboard routes
 app.use('/dashboard', dashboardRoutes); // Add this line
 
+
+app.use(express.static(path.join(__dirname, 'build')));
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
