@@ -24,6 +24,7 @@ import CategoryList from './pages/Dashboard/CategoryList';
 import BrandList from './pages/Dashboard/BrandList';
 import Login from './pages/Login/Login';
 import { GlobalProvider } from './context/GlobalContext';
+import Dashboard from './pages/Dashboard/Dashboard';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -86,7 +87,7 @@ function AppContent() {
           <DashboardLayout />
         </PrivateRoute>
       }>
-        <Route index element={<h1 className="text-2xl font-bold">Welcome to Dashboard</h1>} />
+        <Route index element={<Dashboard />} />
         <Route path="products" element={<ProductList />} />
         <Route path="non-active-products" element={<NonActiveProduct />} />
         <Route path="add-product" element={<AddProduct />} />

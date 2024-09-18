@@ -8,6 +8,7 @@ const attributesRoutes = require('./routes/attributesRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const webRelatedRoutes = require('./routes/webRelatedRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes'); // Add this line
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +45,9 @@ app.use('/orders', orderRoutes);
 
 // Use web-related routes
 app.use('/web', webRelatedRoutes);
+
+// Use dashboard routes
+app.use('/dashboard', dashboardRoutes); // Add this line
 
 // Error handling middleware
 app.use((err, req, res, next) => {
