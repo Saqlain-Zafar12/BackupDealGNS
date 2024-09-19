@@ -16,7 +16,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const corsOptions = {
-  origin: 'http://13.250.11.221/', 
+  origin: 'http://13.250.11.221', 
   credentials: true 
 };
 
