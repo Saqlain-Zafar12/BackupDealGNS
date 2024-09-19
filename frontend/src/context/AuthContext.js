@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
       Cookies.set('token', token, { 
         expires: 3/24,  
         secure: true, 
-        sameSite: 'strict' 
+        sameSite: 'lax' 
       });
       console.log('Login Token:', token);  // Added this line to show token in console
       const userResponse = await axios.get(`${API_URL}/auth/verify-token`, {
