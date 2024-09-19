@@ -28,28 +28,28 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Use auth routes
-app.use('/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 // Use category routes
-app.use('/categories', categoryRoutes);
+app.use('/api/v1/categories', categoryRoutes);
 
 // Use brand routes
-app.use('/brands', brandRoutes);
+app.use('/api/v1/brands', brandRoutes);
 
 // Use attributes routes
-app.use('/attributes', attributesRoutes);
+app.use('/api/v1/attributes', attributesRoutes);
 
 // Use product routes
-app.use('/products', productRoutes);
+app.use('/api/v1/products', productRoutes);
 
 // Use order routes
-app.use('/orders', orderRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // Use web-related routes
-app.use('/web', webRelatedRoutes);
+app.use('/api/v1/web', webRelatedRoutes);
 
 // Use dashboard routes
-app.use('/dashboard', dashboardRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 app.use(express.static(path.join(__dirname, 'build')));
 
