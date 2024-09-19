@@ -25,7 +25,7 @@ const ProductCard = ({ product }) => {
 
   // Use the appropriate language title and category
   console.log(product);
-  
+  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
   const title = i18n.language === 'ar' ? product.ar_title : product.en_title;
   const category = i18n.language === 'ar' ? product.ar_category : product.en_category;
   return (
@@ -38,7 +38,7 @@ const ProductCard = ({ product }) => {
           <div className="relative">
             <img
               alt={title || 'Product Image'}
-              src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${product.main_image_url}`}
+              src={`${backendUrl}/${product.main_image_url}`}
               className="object-cover h-48 w-full"
             />
             <div className="absolute top-2 left-2 flex gap-2">

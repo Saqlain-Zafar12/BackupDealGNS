@@ -10,7 +10,7 @@ const { Text } = Typography;
 const SuperDealCard = ({ deal }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-
+  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
   if (!deal) return null;
   console.log(deal,"deal.total_price");
   const handleCardClick = () => {
@@ -33,7 +33,7 @@ const SuperDealCard = ({ deal }) => {
       >
         <div className="relative overflow-hidden">
           <img
-          src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${deal.main_image}`} 
+          src={`${backendUrl}/${deal.main_image}`} 
             alt={title} 
             className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110"
           />
