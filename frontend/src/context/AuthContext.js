@@ -40,11 +40,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const { token } = response.data;
-      Cookies.set('token', token, { 
-        expires: 3/24,  
-        secure: true, 
-        sameSite: 'lax' 
-      });
+      Cookies.set('token', token);
       console.log('Login Token:', token);  // Added this line to show token in console
       const userResponse = await axios.get(`${API_URL}/auth/verify-token`, {
         headers: { Authorization: `Bearer ${token}` }
