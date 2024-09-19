@@ -38,7 +38,7 @@ const ProductCard = ({ product }) => {
           <div className="relative">
             <img
               alt={title || 'Product Image'}
-              src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${product.main_image_url}`}
+              src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${product.main_image_url}`}
               className="object-cover h-48 w-full"
             />
             <div className="absolute top-2 left-2 flex gap-2">

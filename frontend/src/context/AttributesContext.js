@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 
 const AttributeContext = createContext();
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1';
 
 export const AttributeProvider = ({ children }) => {
   const [attributes, setAttributes] = useState([]);

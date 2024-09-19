@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 
 const ProductContext = createContext();
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1';
 
 export const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);

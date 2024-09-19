@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import axios from 'axios';
 
 const WebRelatedContext = createContext();
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1';
 export const useWebRelated = () => useContext(WebRelatedContext);
 
 export const WebRelatedProvider = ({ children }) => {

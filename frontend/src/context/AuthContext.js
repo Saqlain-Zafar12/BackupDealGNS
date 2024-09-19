@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 const AuthContext = createContext(null);
 
 // Use a fallback value if the environment variable is not set
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 console.log('API_URL:', API_URL);
 
 export const AuthProvider = ({ children }) => {

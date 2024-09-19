@@ -120,7 +120,7 @@ const EditProduct = () => {
   };
 
   const getImageUrl = (path) => {
-    return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${path}`;
+    return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${path}`;
   };
 
   const translateText = async (text, targetLang) => {

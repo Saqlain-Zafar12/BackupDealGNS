@@ -33,7 +33,7 @@ const SuperDealCard = ({ deal }) => {
       >
         <div className="relative overflow-hidden">
           <img
-          src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${deal.main_image}`} 
+          src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${deal.main_image}`} 
             alt={title} 
             className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110"
           />
