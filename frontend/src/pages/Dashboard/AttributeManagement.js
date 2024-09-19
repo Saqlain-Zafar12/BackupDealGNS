@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Table, Button, Space, Modal, Form, Input, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { useAttribute } from '../../context/AttributesContext';
+import translate from 'translate';
 
 const AttributeManagement = () => {
   const { attributes, addAttribute, updateAttribute, deleteAttribute, isLoading } = useAttribute();
@@ -49,6 +50,24 @@ const AttributeManagement = () => {
         }
       },
     });
+  };
+
+  const translateText = async (text, targetLang) => {
+    try {
+      const translatedText = await translate(text, { to: targetLang });
+      return translatedText;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return '';
+    }
+  };
+
+  const handleEnglishInputChange = async () => {
+    const englishValue = form.getFieldValue('en_attribute_name');
+    if (englishValue) {
+      const arabicValue = await translateText(englishValue, 'ar');
+      form.setFieldsValue({ ar_attribute_name: arabicValue });
+    }
   };
 
   const columns = [
@@ -113,7 +132,7 @@ const AttributeManagement = () => {
             label="English Attribute Name"
             rules={[{ required: true, message: 'Please input the English attribute name!' }]}
           >
-            <Input />
+            <Input onChange={handleEnglishInputChange} />
           </Form.Item>
           <Form.Item
             name="ar_attribute_name"

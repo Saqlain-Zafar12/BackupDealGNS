@@ -75,7 +75,6 @@ exports.getWebProductDataById = async (req, res) => {
       WHERE p.id = $1 AND p.is_active = true
     `;
     const productResult = await pool.query(productQuery, [id]);
-    
     if (productResult.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
@@ -89,25 +88,34 @@ exports.getWebProductDataById = async (req, res) => {
     );
 
     // Fetch attributes
-    const attributes = JSON.parse(product.attributes);
-    const attributeIds = attributes.map(attr => attr.attribute_id);
-    
-    const attributesQuery = `
-      SELECT id, en_attribute_name, ar_attribute_name
-      FROM attributes
-      WHERE id = ANY($1::int[])
-    `;
-    const attributesResult = await pool.query(attributesQuery, [attributeIds]);
+    let formattedAttributes = [];
+    console.log(product.attributes, "product.attributes");
+    if (product.attributes && typeof product.attributes === 'object') {
+      try {
+        const attributes = Array.isArray(product.attributes) ? product.attributes : [product.attributes];
+        if (attributes.length > 0) {
+          const attributeIds = attributes.map(attr => attr.attribute_id);
+          const attributesQuery = `
+            SELECT id, en_attribute_name, ar_attribute_name
+            FROM attributes
+            WHERE id = ANY($1::int[])
+          `;
+          const attributesResult = await pool.query(attributesQuery, [attributeIds]);
 
-    const formattedAttributes = attributes.map(attr => {
-      const attributeInfo = attributesResult.rows.find(a => a.id === attr.attribute_id);
-      return {
-        en_attribute_name: attributeInfo.en_attribute_name,
-        ar_attribute_name: attributeInfo.ar_attribute_name,
-        values: attr.values
-      };
-    });
-
+          formattedAttributes = attributes.map(attr => {
+            const attributeInfo = attributesResult.rows.find(a => a.id === attr.attribute_id);
+            return {
+              en_attribute_name: attributeInfo.en_attribute_name,
+              ar_attribute_name: attributeInfo.ar_attribute_name,
+              values: attr.values
+            };
+          });
+        }
+      } catch (parseError) {
+        console.error('Error processing attributes:', parseError);
+      }
+    }
+    console.log(formattedAttributes, "formattedAttributes");
     res.json({
       ...product,
       quantity_selector_values: quantitySelectorValues,

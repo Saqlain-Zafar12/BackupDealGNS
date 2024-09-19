@@ -3,6 +3,7 @@ import { Table, Button, Space, Modal, Form, Input, Select, message } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { useBrand } from '../../context/BrandContext';
 import { useCategory } from '../../context/CategoryContext';
+import translate from 'translate';
 
 const { Option } = Select;
 
@@ -59,6 +60,24 @@ const BrandList = () => {
         }
       },
     });
+  };
+
+  const translateText = async (text, targetLang) => {
+    try {
+      const translatedText = await translate(text, { to: targetLang });
+      return translatedText;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return '';
+    }
+  };
+
+  const handleEnglishInputChange = async (e) => {
+    const englishText = e.target.value;
+    if (englishText) {
+      const arabicText = await translateText(englishText, 'ar');
+      form.setFieldsValue({ ar_brand_name: arabicText });
+    }
   };
 
   const columns = [
@@ -129,7 +148,7 @@ const BrandList = () => {
             label="English Brand Name"
             rules={[{ required: true, message: 'Please input the English brand name!' }]}
           >
-            <Input />
+            <Input onChange={handleEnglishInputChange} />
           </Form.Item>
           <Form.Item
             name="ar_brand_name"

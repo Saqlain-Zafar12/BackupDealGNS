@@ -7,6 +7,7 @@ import { useBrand } from '../../context/BrandContext';
 import { useAttribute } from '../../context/AttributesContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import translate from 'translate';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -39,22 +40,16 @@ const AddProduct = () => {
 
   const translateText = async (text, targetLang) => {
     try {
-      const response = await axios.post('https://translation.googleapis.com/language/translate/v2', {}, {
-        params: {
-          q: text,
-          target: targetLang,
-          key: process.env.REACT_APP_GOOGLE_TRANSLATE_API_KEY
-        }
-      });
-      return response.data.data.translations[0].translatedText;
+      const translatedText = await translate(text, { to: targetLang });
+      return translatedText;
     } catch (error) {
       console.error('Translation error:', error);
       return '';
     }
   };
 
-  const handleEnglishInputChange = async (field) => {
-    const englishValue = form.getFieldValue(field);
+  const handleEnglishInputChange = async (e, field) => {
+    const englishValue = e.target.value;
     if (englishValue) {
       const arabicValue = await translateText(englishValue, 'ar');
       form.setFieldsValue({ [`ar_${field.split('en_')[1]}`]: arabicValue });
@@ -165,14 +160,14 @@ const AddProduct = () => {
                 />
               </Form.Item>
               <Form.Item name="en_title" label="English Title" rules={[{ required: true }]}>
-                <Input onBlur={() => handleEnglishInputChange('en_title')} />
+                <Input onChange={(e) => handleEnglishInputChange(e, 'en_title')} />
               </Form.Item>
               <Form.Item name="ar_title" label="Arabic Title" rules={[{ required: true }]}>
                 <Input />
               </Form.Item>
             </div>
             <Form.Item name="en_description" label="English Description" rules={[{ required: true }]}>
-              <TextArea rows={4} onBlur={() => handleEnglishInputChange('en_description')} />
+              <TextArea rows={4} onChange={(e) => handleEnglishInputChange(e, 'en_description')} />
             </Form.Item>
             <Form.Item name="ar_description" label="Arabic Description" rules={[{ required: true }]}>
               <TextArea rows={4} />

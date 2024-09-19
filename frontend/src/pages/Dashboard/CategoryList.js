@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Space, Modal, Form, Input, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { useCategory } from '../../context/CategoryContext';
+import translate from 'translate';
 
 const CategoryList = () => {
   const { categories, addCategory, updateCategory, deleteCategory, fetchCategories } = useCategory();
@@ -60,6 +61,24 @@ const CategoryList = () => {
         }
       },
     });
+  };
+
+  const translateText = async (text, targetLang) => {
+    try {
+      const translatedText = await translate(text, { to: targetLang });
+      return translatedText;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return '';
+    }
+  };
+
+  const handleEnglishInputChange = async () => {
+    const englishValue = form.getFieldValue('en_category_name');
+    if (englishValue) {
+      const arabicValue = await translateText(englishValue, 'ar');
+      form.setFieldsValue({ ar_category_name: arabicValue });
+    }
   };
 
   const columns = [
@@ -124,7 +143,7 @@ const CategoryList = () => {
             label="English Category Name"
             rules={[{ required: true, message: 'Please input the English category name!' }]}
           >
-            <Input />
+            <Input onChange={handleEnglishInputChange} />
           </Form.Item>
           <Form.Item
             name="ar_category_name"

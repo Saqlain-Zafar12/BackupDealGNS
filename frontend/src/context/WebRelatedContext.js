@@ -13,7 +13,6 @@ export const WebRelatedProvider = ({ children }) => {
   const getRecommendedProducts = async () => {
     try {
       const response = await axios.get(`${API_URL}/web/recommended-products`);
-      // Ensure the response data is in the correct format
       return response.data.map(product => ({
         id: product.id,
         main_image_url: product.main_image_url,
@@ -25,7 +24,6 @@ export const WebRelatedProvider = ({ children }) => {
         vat_included: product.vat_included,
         ar_title: product.ar_title,
         ar_category: product.ar_category,
-        // Add any other necessary fields
       }));
     } catch (error) {
       console.error('Error fetching recommended products:', error);
@@ -36,7 +34,6 @@ export const WebRelatedProvider = ({ children }) => {
   const getSuperDeals = async () => {
     try {
       const response = await axios.get(`${API_URL}/web/super-deals`);
-      // Ensure the response data is in the correct format
       return response.data.map(deal => ({
         id: deal.id,
         main_image: deal.main_image,
@@ -48,7 +45,6 @@ export const WebRelatedProvider = ({ children }) => {
         total_price: deal.total_price,
         sold: deal.sold,
         quantity: deal.quantity,
-        // Add any other necessary fields
       }));
     } catch (error) {
       console.error('Error fetching super deals:', error);
@@ -69,7 +65,7 @@ export const WebRelatedProvider = ({ children }) => {
 
   const createWebOrder = async (orderData) => {
     try {
-      const response = await axios.post(`${API_URL}/web/create-order`, orderData);
+      const response = await axios.post(`${API_URL}/orders`, orderData);
       return response.data;
     } catch (error) {
       console.error('Error creating web order:', error);

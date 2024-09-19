@@ -6,6 +6,7 @@ import { useProduct } from '../../context/ProductContext';
 import { useCategory } from '../../context/CategoryContext';
 import { useBrand } from '../../context/BrandContext';
 import { useAttribute } from '../../context/AttributesContext';
+import translate from 'translate';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -121,6 +122,32 @@ const EditProduct = () => {
   const getImageUrl = (path) => {
     return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${path}`;
   };
+
+  const translateText = async (text, targetLang) => {
+    try {
+      const translatedText = await translate(text, { to: targetLang });
+      return translatedText;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return '';
+    }
+  };
+
+  const handleEnglishTitleChange = async (e) => {
+    const englishTitle = e.target.value;
+    if (englishTitle) {
+      const arabicTitle = await translateText(englishTitle, 'ar');
+      form.setFieldsValue({ ar_title: arabicTitle });
+    }
+  };
+
+  const handleEnglishDescriptionChange = async (e) => {
+    const englishDescription = e.target.value;
+    if (englishDescription) {
+      const arabicDescription = await translateText(englishDescription, 'ar');
+      form.setFieldsValue({ ar_description: arabicDescription });
+    }
+  };
   
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -171,14 +198,14 @@ const EditProduct = () => {
                 />
               </Form.Item>
               <Form.Item name="en_title" label="English Title" rules={[{ required: true }]}>
-                <Input />
+                <Input onChange={handleEnglishTitleChange} />
               </Form.Item>
               <Form.Item name="ar_title" label="Arabic Title" rules={[{ required: true }]}>
                 <Input />
               </Form.Item>
             </div>
             <Form.Item name="en_description" label="English Description" rules={[{ required: true }]}>
-              <TextArea rows={4} />
+              <TextArea rows={4} onChange={handleEnglishDescriptionChange} />
             </Form.Item>
             <Form.Item name="ar_description" label="Arabic Description" rules={[{ required: true }]}>
               <TextArea rows={4} />

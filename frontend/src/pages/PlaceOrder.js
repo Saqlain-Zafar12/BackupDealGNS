@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Form, Input, Select, Button, message, Layout, Row, Col, Card, Typography, Tabs } from 'antd';
 import { FaShoppingCart, FaTruck, FaPercent } from 'react-icons/fa';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useWebRelated } from '../context/WebRelatedContext';
 
 const { Option } = Select;
@@ -11,55 +11,65 @@ const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
 const PlaceOrder = () => {
-  const { t } = useTranslation();
-  const { id } = useParams();
+  const { t, i18n } = useTranslation();
+  const location = useLocation();
+  const { product } = location.state || {};
   const { getWebProductDataById, createWebOrder } = useWebRelated();
-  const [productData, setProductData] = useState(null);
+  const [productData, setProductData] = useState(product || null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [form] = Form.useForm();
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const imageRef = useRef(null);
   const navigate = useNavigate();
+  const dataFetchedRef = useRef(false);
 
   useEffect(() => {
     const fetchProductData = async () => {
-      try {
-        const data = await getWebProductDataById(id);
-        setProductData(data);
-        // Set other state variables based on the fetched data
-      } catch (error) {
-        console.error('Error fetching product data:', error);
-        message.error(t('errors.fetchProductData'));
+      if (product && product.id && !dataFetchedRef.current) {
+        try {
+          const data = await getWebProductDataById(product.id);
+          setProductData(data);
+          dataFetchedRef.current = true;
+        } catch (error) {
+          console.error('Error fetching product data:', error);
+          message.error(t('errors.fetchProductData'));
+        }
       }
     };
 
-    if (id) {
-      fetchProductData();
-    }
-  }, [id, getWebProductDataById, t]);
+    fetchProductData();
+  }, [product, getWebProductDataById, t]);
 
   const productImages = [
     'https://plus.unsplash.com/premium_photo-1679830513865-cd8256abe2c1?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-     'https://images.unsplash.com/photo-1607930647942-2820445f77e8?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-     'https://plus.unsplash.com/premium_photo-1676790134077-4ade5c365cfe?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-     'https://images.unsplash.com/photo-1605947064908-65712a69ee6d?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-     'https://images.unsplash.com/photo-1711700357997-7dd71318d2bd?q=80&w=1475&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-
+    'https://images.unsplash.com/photo-1607930647942-2820445f77e8?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://plus.unsplash.com/premium_photo-1676790134077-4ade5c365cfe?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://images.unsplash.com/photo-1605947064908-65712a69ee6d?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    'https://images.unsplash.com/photo-1711700357997-7dd71318d2bd?q=80&w=1475&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   ];
-
-  const productDescription = t('placeOrder.productDescription', 'Experience ultimate comfort and style with our premium product. Crafted with high-quality materials, this versatile item is perfect for everyday use. Its sleek design and durable construction ensure long-lasting performance. Whether you\'re at home or on the go, this product is sure to enhance your lifestyle.');
 
   const onFinish = async (values) => {
     try {
+      const selectedAttributes = productData.attributes.map((attribute, index) => {
+        const value = values[`attribute_${index}`];
+        return `${attribute.en_attribute_name}:${value}`;
+      });
+
       const orderData = {
-        ...values,
-        product_id: id,
-        // Add other necessary fields
+        web_user_id: 'user123', // Replace with actual user ID
+        full_name: values.fullName,
+        mobilenumber: values.mobile,
+        quantity: values.quantity,
+        selected_emirates: 1,
+        delivery_address: values.address,
+        product_id: product.id,
+        selected_attributes: selectedAttributes,
       };
+
       const result = await createWebOrder(orderData);
       message.success(t('placeOrder.orderSuccess'));
-      navigate('/order-confirmation', { state: { orderId: result.order_id } });
+      navigate('/order-confirmation', { state: { orderId: result.id } });
     } catch (error) {
       console.error('Error creating order:', error);
       message.error(t('errors.createOrder'));
@@ -77,11 +87,18 @@ const PlaceOrder = () => {
   const handleMouseMove = (e) => {
     if (isZoomed && imageRef.current) {
       const { left, top, width, height } = imageRef.current.getBoundingClientRect();
-      const x = (e.clientX - left) / width * 100;
-      const y = (e.clientY - top) / height * 100;
+      const x = ((e.clientX - left) / width) * 100;
+      const y = ((e.clientY - top) / height) * 100;
       setZoomPosition({ x, y });
     }
   };
+
+  if (!productData) {
+    return <div>Loading...</div>;
+  }
+
+  const title = i18n.language === 'ar' ? productData.ar_title : productData.en_title;
+  const description = i18n.language === 'ar' ? productData.ar_description : productData.en_description;
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -90,13 +107,15 @@ const PlaceOrder = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12} lg={12} xl={12}>
               <Card>
-                <Title level={4} className="mb-4">{t('placeOrder.title')}</Title>
-                <div 
-                  style={{ 
-                    position: 'relative', 
-                    overflow: 'hidden', 
+                <Title level={4} className="mb-4">
+                  {title}
+                </Title>
+                <div
+                  style={{
+                    position: 'relative',
+                    overflow: 'hidden',
                     height: '300px',
-                    cursor: isZoomed ? 'move' : 'zoom-in'
+                    cursor: isZoomed ? 'move' : 'zoom-in',
                   }}
                   onClick={handleImageClick}
                   onMouseMove={handleMouseMove}
@@ -111,12 +130,12 @@ const PlaceOrder = () => {
                       objectFit: 'cover',
                       transform: isZoomed ? 'scale(2)' : 'scale(1)',
                       transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                      transition: 'transform 0.3s ease-out'
+                      transition: 'transform 0.3s ease-out',
                     }}
                   />
                 </div>
                 <Tabs defaultActiveKey="0" onChange={handleImageChange}>
-                  {productImages.map((image, index) => (
+                  {productImages?.map((image, index) => (
                     <TabPane
                       tab={
                         <img
@@ -132,12 +151,16 @@ const PlaceOrder = () => {
                 <div className="mt-4">
                   <Row justify="space-between" align="middle">
                     <Col>
-                      <Text strong className="text-2xl text-red-500">59 AED</Text>
-                      <Text delete className="ml-2 text-gray-500">99 AED</Text>
+                      <Text strong className="text-2xl text-red-500">
+                        {productData.total_price} AED
+                      </Text>
+                      <Text delete className="ml-2 text-gray-500">
+                        {productData.actual_price} AED
+                      </Text>
                     </Col>
                     <Col>
                       <Text className="flex items-center">
-                        <FaPercent className="mr-1" /> 40% {t('product.off')}
+                        <FaPercent className="mr-1" /> {productData.discount}% {t('product.off')}
                       </Text>
                     </Col>
                   </Row>
@@ -145,7 +168,7 @@ const PlaceOrder = () => {
                     <Col>
                       <Text className="flex items-center text-blue-500">
                         <FaShoppingCart className="mr-2" />
-                        5651 {t('placeOrder.itemsSold')}
+                        {productData.sold_items} {t('placeOrder.itemsSold')}
                       </Text>
                     </Col>
                     <Col>
@@ -155,9 +178,7 @@ const PlaceOrder = () => {
                       </Text>
                     </Col>
                   </Row>
-                  <Paragraph className="mt-4">
-                    {productDescription}
-                  </Paragraph>
+                  <Paragraph className="mt-4">{description}</Paragraph>
                 </div>
               </Card>
             </Col>
@@ -184,11 +205,29 @@ const PlaceOrder = () => {
                     rules={[{ required: true, message: t('placeOrder.quantityRequired') }]}
                   >
                     <Select>
-                      <Option value="1">1 - 59 AED</Option>
-                      <Option value="2">2 - 118 AED</Option>
-                      <Option value="3">3 - 177 AED</Option>
+                      {productData?.quantity_selector_values?.map((option) => (
+                        <Option key={option.quantity} value={option.quantity}>
+                          {option.quantity} - {option.price} AED
+                        </Option>
+                      ))}
                     </Select>
                   </Form.Item>
+                  {productData?.attributes?.map((attribute, index) => (
+                    <Form.Item
+                      key={index}
+                      name={`attribute_${index}`}
+                      label={i18n.language === 'ar' ? attribute.ar_attribute_name : attribute.en_attribute_name}
+                      rules={[{ required: true, message: t('placeOrder.attributeRequired') }]}
+                    >
+                      <Select>
+                        {attribute.values.map((value) => (
+                          <Option key={value} value={value}>
+                            {value}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  ))}
                   <Form.Item
                     name="emirates"
                     label={t('placeOrder.emirates')}
