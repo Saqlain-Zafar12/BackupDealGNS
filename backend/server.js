@@ -15,8 +15,12 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Enable CORS for all routes
-app.use(cors());
+const corsOptions = {
+  origin: 'http://13.250.11.221/', 
+  credentials: true 
+};
+
+app.use(cors(corsOptions));
 
 // Parse JSON bodies
 app.use(express.json());
