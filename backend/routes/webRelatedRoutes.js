@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const WebRelatedController = require('../controllers/WebRelatedController');
+const WebRelatedController = require('../controllers/webRelatedController');
 
 router.get('/recommended-products', WebRelatedController.getRecommendedProducts);
 router.get('/super-deals', WebRelatedController.getSuperDeals);

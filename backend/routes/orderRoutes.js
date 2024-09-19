@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const OrderController = require('../controllers/OrderController');
-const authTokenMiddleware = require('../middleware/authTokenMiddleware');
+const OrderController = require('../controllers/orderController.js');
+const authTokenMiddleware = require('../middleware/authTokenMiddleware.js');
 
 // Public routes
 router.post('/', OrderController.createOrder);
