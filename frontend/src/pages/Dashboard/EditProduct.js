@@ -21,24 +21,16 @@ const EditProduct = () => {
   const { brands } = useBrand();
   const { attributes } = useAttribute();
   const [loading, setLoading] = useState(false);
-  const [mainImage, setMainImage] = useState(null);
-  const [tabImages, setTabImages] = useState([]);
-  const [mainImageUrl, setMainImageUrl] = useState(null);
-  const [tabImageUrls, setTabImageUrls] = useState([]);
-  const [tabImageFiles, setTabImageFiles] = useState([]);
   const [mainImageFile, setMainImageFile] = useState([]);
-
-  const getFullImageUrl = (path) => {
-    return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${path}`;
-  };
+  const [tabImageFiles, setTabImageFiles] = useState([]);
 
   const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
-
+  const [productMainImage, setProductMainImage] = useState(null);
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const product = await getProductById(id);
-        console.log(product,"product");
+        setProductMainImage(product.image_url);
         let parsedAttributes = product.attributes;
         if (typeof product.attributes === 'string') {
           try {
@@ -73,12 +65,14 @@ const EditProduct = () => {
             status: 'done',
             url: `${backendUrl}/${product.image_url}`
           }]);
-        } else {
-          setMainImageFile([]); // Ensure it's an empty array if no image
         }
         if (Array.isArray(product.tabs_image_url)) {
-          setTabImageUrls(product.tabs_image_url.map(url => getFullImageUrl(url)));
-          setTabImageFiles(product.tabs_image_url.map(url => ({ url })));
+          setTabImageFiles(product.tabs_image_url.map((url, index) => ({
+            uid: `-${index}`,
+            name: url.split('\\').pop(),
+            status: 'done',
+            url: `${backendUrl}/${url}`
+          })));
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -162,8 +156,9 @@ const EditProduct = () => {
       max_quantity_per_user: parseInt(values.max_quantity_per_user),
       sold: parseInt(values.sold),
       attributes: formattedAttributes,
-      mainImage: mainImageFile.length > 0 ? mainImageFile[0].originFileObj || mainImageFile[0] : null,
-      tabImages: tabImages,
+      mainImage: mainImageFile.length > 0 ? (mainImageFile[0].originFileObj || mainImageFile[0].url || mainImageFile[0]) : productMainImage,
+      image_url: productMainImage,
+      tabImages: tabImageFiles.map(file => file.originFileObj || file.url),
       tabs_image_url: tabImageFiles.map(file => file.url || file.name),
       is_deal: values.is_deal || false,
       is_hot_deal: values.is_hot_deal || false,
@@ -175,25 +170,15 @@ const EditProduct = () => {
     // Only keep the last uploaded file
     const newFileList = fileList.slice(-1);
     setMainImageFile(newFileList);
+    setProductMainImage(null);  // Clear the initial image URL when a new image is uploaded
   };
 
   const handleRemoveMainImage = () => {
     setMainImageFile([]);
+    setProductMainImage(null);  // Clear the initial image URL when the image is removed
   };
 
   const handleTabImagesUpload = ({ fileList }) => {
-    const newTabImages = fileList.map(file => file.originFileObj || file);
-    setTabImages(newTabImages);
-
-    const newTabImageUrls = fileList.map(file => {
-      if (file.originFileObj) {
-        return URL.createObjectURL(file.originFileObj);
-      } else {
-        return file.url || getFullImageUrl(file.name);
-      }
-    });
-
-    setTabImageUrls(newTabImageUrls);
     setTabImageFiles(fileList);
   };
 
@@ -419,13 +404,19 @@ const EditProduct = () => {
 
             <Form.Item name="tabImages" label="Tab Images">
               <Upload
-                beforeUpload={() => false}
+                listType="picture-card"
+                fileList={tabImageFiles}
                 onChange={handleTabImagesUpload}
+                beforeUpload={() => false}
                 multiple
                 maxCount={5}
-                fileList={tabImageFiles}
               >
-                <Button icon={<UploadOutlined />}>Upload Tab Images</Button>
+                {tabImageFiles.length >= 5 ? null : (
+                  <div>
+                    <PlusOutlined />
+                    <div style={{ marginTop: 8 }}>Upload</div>
+                  </div>
+                )}
               </Upload>
             </Form.Item>
 
