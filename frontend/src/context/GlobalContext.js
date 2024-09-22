@@ -6,7 +6,8 @@ import { ProductProvider } from './ProductContext';
 import { AttributeProvider } from './AttributesContext';
 import { OrderProvider } from './OrderContext';
 import { WebRelatedProvider } from './WebRelatedContext';
-import { DashboardProvider } from './dashboardContext'; // Add this import
+import { DashboardProvider } from './dashboardContext';
+import { DeliveryTypeProvider } from './deliveryTypeContext'; // Add this import
 
 export const GlobalProvider = ({ children }) => {
   return (
@@ -17,8 +18,10 @@ export const GlobalProvider = ({ children }) => {
             <AttributeProvider>
               <OrderProvider>
                 <WebRelatedProvider>
-                  <DashboardProvider> {/* Add DashboardProvider here */}
-                    {children}
+                  <DashboardProvider>
+                    <DeliveryTypeProvider> {/* Add DeliveryTypeProvider here */}
+                      {children}
+                    </DeliveryTypeProvider>
                   </DashboardProvider>
                 </WebRelatedProvider>
               </OrderProvider>

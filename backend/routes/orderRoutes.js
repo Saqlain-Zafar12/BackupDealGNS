@@ -17,4 +17,7 @@ router.get('/confirmed', OrderController.getConfirmedOrders);
 router.get('/delivered', OrderController.getDeliveredOrders);
 router.get('/cancelled', OrderController.getCancelledOrders);
 
+// New route to assign delivery type
+router.put('/:id/assign-delivery-type', OrderController.assignDeliveryType);
+
 module.exports = router;

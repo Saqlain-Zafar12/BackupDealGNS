@@ -11,6 +11,7 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const webRelatedRoutes = require('./routes/webRelatedRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const deliveryTypeRoutes = require('./routes/deliveryTypeRoute'); // Add this line
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -54,6 +55,9 @@ app.use('/api/v1/web', webRelatedRoutes);
 
 // Use dashboard routes
 app.use('/api/v1/dashboard', dashboardRoutes);
+
+// Use delivery type routes
+app.use('/api/v1/delivery-types', deliveryTypeRoutes); // Add this line
 
 app.use(express.static(path.join(__dirname, 'build')));
 

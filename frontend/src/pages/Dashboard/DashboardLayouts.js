@@ -83,6 +83,7 @@ const DashboardLayout = () => {
           <NavLink to="/dashboard/cancelled-orders" icon={<StopOutlined className="mr-3 text-green-600" />}>Cancelled Orders</NavLink>
           <NavLink to="/dashboard/categories" icon={<AppstoreOutlined className="mr-3 text-green-600" />}>Categories</NavLink>
           <NavLink to="/dashboard/brands" icon={<TrademarkOutlined className="mr-3 text-green-600" />}>Brands</NavLink>
+          <NavLink to="/dashboard/delivery-types" icon={<CarOutlined className="mr-3 text-green-600" />}>Delivery Types</NavLink>
         </nav>
       </aside>
       <div className="flex-1 flex flex-col overflow-hidden">

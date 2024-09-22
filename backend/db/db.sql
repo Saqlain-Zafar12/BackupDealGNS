@@ -72,7 +72,16 @@ CREATE TABLE orders (
   product_id INTEGER NOT NULL,
   selected_attributes TEXT[] NOT NULL,
   order_type VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (order_type IN ('pending', 'confirmed', 'delivered', 'cancelled')),
+  delivery_type_name VARCHAR(255) NOT NULL ,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (product_id) REFERENCES products(id)
+  FOREIGN KEY (product_id) REFERENCES products(id),
+  FOREIGN KEY (delivery_type_name) REFERENCES delivery_types(name)
+);
+
+CREATE TABLE delivery_types (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

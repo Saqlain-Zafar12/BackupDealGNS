@@ -10,4 +10,9 @@ router.get('/stats', dashboardController.getDashboardStats);
 router.get('/revenue', dashboardController.getRevenueStats);
 router.get('/product-stats', dashboardController.getProductStats);
 
+router.get('/monthly-revenue', dashboardController.getMonthlyRevenue);
+router.get('/monthly-sales', dashboardController.getMonthlySales);
+router.get('/weekly-revenue', dashboardController.getWeeklyRevenue);
+router.get('/weekly-sales', dashboardController.getWeeklySales);
+
 module.exports = router;

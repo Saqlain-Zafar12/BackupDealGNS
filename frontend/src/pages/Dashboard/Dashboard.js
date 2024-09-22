@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
 import { Row, Col, Card, Statistic, Table, Spin, Alert, Typography, Layout } from 'antd';
-import { ShoppingCartOutlined, ShoppingOutlined, UserOutlined, DollarOutlined } from '@ant-design/icons';
+import { ShoppingCartOutlined, ShoppingOutlined, UserOutlined, MoneyCollectOutlined } from '@ant-design/icons';
 import { useDashboard } from '../../context/dashboardContext';
+import { Line, Bar, Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title as ChartTitle, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, ChartTitle, Tooltip, Legend);
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -10,20 +14,19 @@ const Dashboard = () => {
   const { 
     dashboardStats, 
     revenueStats, 
-    productStats, 
+    productStats,
+    monthlyRevenue,
+    monthlySales,
+    weeklyRevenue,
+    weeklySales,
     loading, 
     error, 
-    fetchDashboardStats,    
-    fetchRevenueStats, 
-    fetchProductStats 
+    fetchAllData
   } = useDashboard();
 
   useEffect(() => {
-    const fetchData = async () => {
-      await Promise.all([fetchDashboardStats(), fetchRevenueStats(), fetchProductStats()]);
-    };
-    fetchData();
-  }, [fetchDashboardStats, fetchRevenueStats, fetchProductStats]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   if (loading) return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />;
   if (error) return <Alert message={error} type="error" style={{ margin: '24px' }} />;
@@ -43,62 +46,140 @@ const Dashboard = () => {
       return { total: 0, change: 0, isPositive: true };
     }
 
-    const total = parseFloat(revenueStats.dailyRevenue[0].revenue);
+    const total = revenueStats.dailyRevenue.reduce((sum, day) => sum + parseFloat(day.revenue), 0);
+    const lastDayRevenue = parseFloat(revenueStats.dailyRevenue[revenueStats.dailyRevenue.length - 1].revenue);
+    const secondLastDayRevenue = parseFloat(revenueStats.dailyRevenue[revenueStats.dailyRevenue.length - 2]?.revenue || 0);
+    const change = ((lastDayRevenue - secondLastDayRevenue) / secondLastDayRevenue) * 100;
 
     return {
       total: total.toFixed(2),
-      change: 0,
-      isPositive: true
+      change: change.toFixed(2),
+      isPositive: change >= 0
     };
   };
 
   const revenueSummary = calculateRevenueSummary();
 
-  const statCards = [
-    { title: "Total Products", value: dashboardStats?.totalProducts || 0, icon: <ShoppingOutlined /> },
-    { title: "Total Orders", value: dashboardStats?.totalOrders || 0, icon: <ShoppingCartOutlined /> },
-    { title: "Total Categories", value: dashboardStats?.totalCategories || 0, icon: <UserOutlined /> },
-    { title: "Total Brands", value: dashboardStats?.totalBrands || 0, icon: <DollarOutlined /> }
-  ];
+  const chartData = (data, label) => ({
+    labels: data.map(item => new Date(item.month || item.week).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })),
+    datasets: [{
+      label,
+      data: data.map(item => item.revenue || item.sales),
+      borderColor: 'rgb(75, 192, 192)',
+      backgroundColor: 'rgba(75, 192, 192, 0.5)',
+      tension: 0.1
+    }]
+  });
+
+  const orderStatusData = {
+    labels: Object.keys(dashboardStats?.ordersByStatus || {}),
+    datasets: [{
+      data: Object.values(dashboardStats?.ordersByStatus || {}),
+      backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+      hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+    }]
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          boxWidth: 10,
+          font: {
+            size: 10
+          }
+        }
+      }
+    }
+  };
 
   return (
     <Layout className="bg-green-50">
       <Content className="bg-green-50" style={{ padding: '24px', minHeight: '100vh' }}>
         <Title level={2} style={{ marginBottom: '24px' }}>Dashboard</Title>
-        
-        <Row gutter={[24, 24]}>
-          {statCards.map((item, index) => (
-            <Col xs={24} sm={12} lg={6} key={index}>
-              <Card hoverable>
-                <Statistic title={item.title} value={item.value} prefix={item.icon} />
-              </Card>
-            </Col>
-          ))}
+        <Row gutter={[24, 24]} >
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Monthly Revenue" hoverable>
+            <Line data={chartData(monthlyRevenue, 'Monthly Revenue')} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Monthly Sales" hoverable>
+            <Bar data={chartData(monthlySales, 'Monthly Sales')} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Weekly Revenue" hoverable>
+            <Line data={chartData(weeklyRevenue, 'Weekly Revenue')} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card title="Weekly Sales" hoverable>
+            <Bar data={chartData(weeklySales, 'Weekly Sales')} />
+          </Card>
+        </Col>
+      </Row>
+        <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic title="Total Products" value={dashboardStats?.totalProducts} prefix={<ShoppingOutlined />} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic title="Total Categories" value={dashboardStats?.totalCategories} prefix={<ShoppingCartOutlined />} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic title="Total Brands" value={dashboardStats?.totalBrands} prefix={<ShoppingOutlined />} />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card>
+              <Statistic title="Total Orders" value={dashboardStats?.totalOrders} prefix={<UserOutlined />} />
+            </Card>
+          </Col>
         </Row>
+
+      
 
         <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
           <Col xs={24} lg={12}>
             <Card title="Revenue Summary" hoverable style={{ height: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                <Statistic
-                  title="Total Revenue"
-                  value={revenueSummary.total}
-                  precision={2}
-                  valueStyle={{ color: '#3f8600' }}
-                  prefix={<DollarOutlined />}
-                  suffix="AED"
-                />
-              </div>
+              <Statistic
+                title="Total Revenue"
+                value={revenueSummary.total}
+                precision={2}
+                valueStyle={{ color: revenueSummary.isPositive ? '#3f8600' : '#cf1322' }}
+                prefix={<MoneyCollectOutlined />}
+                suffix="AED"
+              />
+              <Statistic
+                title="Daily Change"
+                value={revenueSummary.change}
+                precision={2}
+                valueStyle={{ color: revenueSummary.isPositive ? '#3f8600' : '#cf1322' }}
+                prefix={revenueSummary.isPositive ? "+" : "-"}
+                suffix="%"
+              />
             </Card>
           </Col>
           <Col xs={24} lg={12}>
             <Card title="Top Selling Products" hoverable style={{ height: '100%' }}>
-              <Table 
-                dataSource={dashboardStats?.topSellingProducts || []}
-                columns={topProductsColumns} 
-                pagination={false}
-                scroll={{ x: true, y: 240 }}
-              />
+              {dashboardStats?.topSellingProducts ? (
+                <Table 
+                  dataSource={dashboardStats.topSellingProducts}
+                  columns={topProductsColumns} 
+                  pagination={false}
+                  scroll={{ x: true, y: 240 }}
+                />
+              ) : (
+                <Alert message="No top selling products data available" type="info" />
+              )}
             </Card>
           </Col>
         </Row>
@@ -106,26 +187,27 @@ const Dashboard = () => {
         <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
           <Col xs={24} lg={12}>
             <Card title="Low Stock Products" hoverable>
-              <Table 
-                dataSource={productStats?.lowStockProducts || []}
-                columns={lowStockColumns} 
-                pagination={false}
-                scroll={{ x: true }}
-              />
+              {productStats?.lowStockProducts ? (
+                <Table 
+                  dataSource={productStats.lowStockProducts}
+                  columns={lowStockColumns} 
+                  pagination={false}
+                  scroll={{ x: true }}
+                />
+              ) : (
+                <Alert message="No low stock products data available" type="info" />
+              )}
             </Card>
           </Col>
           <Col xs={24} lg={12}>
             <Card title="Orders by Status" hoverable>
-              <Row gutter={[16, 16]}>
-                {['pending', 'confirmed', 'delivered'].map((status, index) => (
-                  <Col xs={24} sm={8} key={index}>
-                    <Statistic 
-                      title={status.charAt(0).toUpperCase() + status.slice(1)} 
-                      value={dashboardStats?.ordersByStatus?.[status] || 0} 
-                    />
-                  </Col>
-                ))}
-              </Row>
+              {dashboardStats?.ordersByStatus ? (
+                <div style={{ height: '200px' }}> {/* Adjust this height as needed */}
+                  <Pie data={orderStatusData} options={pieOptions} />
+                </div>
+              ) : (
+                <Alert message="No orders by status data available" type="info" />
+              )}
             </Card>
           </Col>
         </Row>

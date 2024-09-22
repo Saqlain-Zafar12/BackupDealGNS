@@ -8,85 +8,96 @@ const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/
 export const useDashboard = () => useContext(DashboardContext);
 
 export const DashboardProvider = ({ children }) => {
-  const [dashboardStats, setDashboardStats] = useState({
-    totalProducts: 0,
-    totalOrders: 0,
-    totalCategories: 0,
-    totalBrands: 0,
-    ordersByStatus: { pending: 0, confirmed: 0, delivered: 0 },
-    topSellingProducts: []
-  });
-  const [revenueStats, setRevenueStats] = useState({ dailyRevenue: [] });
-  const [productStats, setProductStats] = useState({ lowStockProducts: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [dashboardStats, setDashboardStats] = useState({});
+  const [revenueStats, setRevenueStats] = useState({});
+  const [productStats, setProductStats] = useState({});
+  const [monthlyRevenue, setMonthlyRevenue] = useState([]);
+  const [monthlySales, setMonthlySales] = useState([]);
+  const [weeklyRevenue, setWeeklyRevenue] = useState([]);
+  const [weeklySales, setWeeklySales] = useState([]);
 
   const token = Cookies.get('token');
 
-  const fetchDashboardStats = useCallback(async () => {
+  const fetchData = useCallback(async (endpoint, setter) => {
     setLoading(true);
+    setError(null);
     try {
-      const { data } = await axios.get(`${API_URL}/dashboard/stats`, {
+      console.log(`Fetching from: ${API_URL}/dashboard${endpoint}`);
+      const response = await axios.get(`${API_URL}/dashboard${endpoint}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setDashboardStats(prevStats => ({
-        ...prevStats,
-        ...data,
-        ordersByStatus: data.ordersByStatus || { pending: 0, confirmed: 0, delivered: 0 }
-      }));
-      setError(null);
+      console.log(`${endpoint} response:`, response);
+      
+      if (response.status !== 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      if (typeof response.data === 'string') {
+        console.error(`Unexpected string response for ${endpoint}:`, response.data);
+        throw new Error('Received HTML instead of JSON');
+      }
+      
+      setter(response.data);
     } catch (err) {
-      setError('Error fetching dashboard stats');
-      console.error(err);
+      console.error(`Error fetching ${endpoint} data:`, err);
+      setError(`Error fetching ${endpoint} data: ${err.message}`);
+      if (err.response) {
+        console.error('Error response:', err.response);
+      }
     } finally {
       setLoading(false);
     }
   }, [token]);
 
-  const fetchRevenueStats = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data } = await axios.get(`${API_URL}/dashboard/revenue`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setRevenueStats({
-        dailyRevenue: Array.isArray(data.dailyRevenue) ? data.dailyRevenue : []
-      });
-      setError(null);
-    } catch (err) {
-      setError('Error fetching revenue stats');
-      console.error(err);
-      setRevenueStats({ dailyRevenue: [] });
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
+  const fetchDashboardStats = useCallback(() => fetchData('/stats', setDashboardStats), [fetchData]);
+  const fetchRevenueStats = useCallback(() => fetchData('/revenue', setRevenueStats), [fetchData]);
+  const fetchProductStats = useCallback(() => fetchData('/product-stats', setProductStats), [fetchData]);
+  const fetchMonthlyRevenue = useCallback(() => fetchData('/monthly-revenue', setMonthlyRevenue), [fetchData]);
+  const fetchMonthlySales = useCallback(() => fetchData('/monthly-sales', setMonthlySales), [fetchData]);
+  const fetchWeeklyRevenue = useCallback(() => fetchData('/weekly-revenue', setWeeklyRevenue), [fetchData]);
+  const fetchWeeklySales = useCallback(() => fetchData('/weekly-sales', setWeeklySales), [fetchData]);
 
-  const fetchProductStats = useCallback(async () => {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const { data } = await axios.get(`${API_URL}/dashboard/product-stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setProductStats({ lowStockProducts: data.lowStockProducts || [] });
-      setError(null);
+      await Promise.all([
+        fetchDashboardStats(),
+        fetchRevenueStats(),
+        fetchProductStats(),
+        fetchMonthlyRevenue(),
+        fetchMonthlySales(),
+        fetchWeeklyRevenue(),
+        fetchWeeklySales()
+      ]);
     } catch (err) {
-      setError('Error fetching product stats');
-      console.error(err);
+      console.error('Error fetching all dashboard data:', err);
+      setError('Error fetching all dashboard data');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [fetchDashboardStats, fetchRevenueStats, fetchProductStats, fetchMonthlyRevenue, fetchMonthlySales, fetchWeeklyRevenue, fetchWeeklySales]);
 
   const value = {
+    loading,
+    error,
     dashboardStats,
     revenueStats,
     productStats,
-    loading,
-    error,
+    monthlyRevenue,
+    monthlySales,
+    weeklyRevenue,
+    weeklySales,
     fetchDashboardStats,
     fetchRevenueStats,
     fetchProductStats,
+    fetchMonthlyRevenue,
+    fetchMonthlySales,
+    fetchWeeklyRevenue,
+    fetchWeeklySales,
+    fetchAllData
   };
 
   return (

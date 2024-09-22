@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Space, Modal, message } from 'antd';
+import { Table, Button, Space, Modal, message, Select } from 'antd';
 import { EyeOutlined, CarOutlined } from '@ant-design/icons';
 import { useOrder } from '../../context/OrderContext';
+import { useDeliveryType } from '../../context/deliveryTypeContext';
+
+const { Option } = Select;
 
 const ConfirmOrderList = () => {
-  const { confirmedOrders, isLoading, fetchConfirmedOrders, getOrderDetails, deliverOrder } = useOrder();
+  const { confirmedOrders, isLoading, fetchConfirmedOrders, getOrderDetails, deliverOrder, assignDeliveryType } = useOrder();
+  const { deliveryTypes, fetchDeliveryTypes } = useDeliveryType();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     fetchConfirmedOrders();
-  }, [fetchConfirmedOrders]);
+    fetchDeliveryTypes();
+  }, [fetchConfirmedOrders, fetchDeliveryTypes]);
 
   const showModal = async (orderId) => {
     try {
@@ -34,9 +39,19 @@ const ConfirmOrderList = () => {
     try {
       await deliverOrder(id);
       message.success('Order marked as delivered successfully');
-      fetchConfirmedOrders(); // Refresh the list after delivering an order
+      fetchConfirmedOrders();
     } catch (error) {
       message.error('Failed to mark order as delivered');
+    }
+  };
+
+  const handleAssignDeliveryType = async (orderId, deliveryTypeName) => {
+    try {
+      await assignDeliveryType(orderId, deliveryTypeName);
+      message.success('Delivery type assigned successfully');
+      fetchConfirmedOrders();
+    } catch (error) {
+      message.error('Failed to assign delivery type');
     }
   };
 
@@ -71,13 +86,31 @@ const ConfirmOrderList = () => {
       render: (created_at) => (created_at ? new Date(created_at).toLocaleDateString() : 'N/A'),
     },
     {
+      title: 'Delivery Type',
+      dataIndex: 'delivery_type_name',
+      key: 'delivery_type_name',
+      render: (delivery_type_name, record) => (
+        <Select
+          style={{ width: 120 }}
+          value={delivery_type_name || 'Assign'}
+          onChange={(value) => handleAssignDeliveryType(record.id, value)}
+        >
+          {deliveryTypes.map((type) => (
+            <Option key={type.id} value={type.name}>
+              {type.name}
+            </Option>
+          ))}
+        </Select>
+      ),
+    },
+    {
       title: 'Actions',
       key: 'actions',
       render: (_, record) => (
         <Space size="middle">
           <Button icon={<EyeOutlined />} onClick={() => showModal(record.id)} />
           <Button onClick={() => handleDeliverOrder(record.id)}>
-          <CarOutlined />
+            <CarOutlined />
           </Button>
         </Space>
       ),
@@ -105,6 +138,7 @@ const ConfirmOrderList = () => {
             <p><strong>Emirates:</strong> {selectedOrder.selected_emirates || 'N/A'}</p>
             <p><strong>Delivery Address:</strong> {selectedOrder.delivery_address || 'N/A'}</p>
             <p><strong>Selected Attributes:</strong> {selectedOrder.selected_attributes || 'N/A'}</p>
+            <p><strong>Delivery Type:</strong> {selectedOrder.delivery_type_name || 'Not assigned'}</p>
           </div>
         )}
       </Modal>

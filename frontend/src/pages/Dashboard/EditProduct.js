@@ -22,20 +22,45 @@ const EditProduct = () => {
   const { attributes } = useAttribute();
   const [loading, setLoading] = useState(false);
   const [mainImage, setMainImage] = useState(null);
-  const [existingTabImages, setExistingTabImages] = useState([]);
-  const [newTabImages, setNewTabImages] = useState([]);
-  const [existingMainImage, setExistingMainImage] = useState(null);
+  const [tabImages, setTabImages] = useState([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const product = await getProductById(id);
+        let parsedAttributes = product.attributes;
+        if (typeof product.attributes === 'string') {
+          try {
+            parsedAttributes = JSON.parse(product.attributes);
+          } catch (error) {
+            console.error('Error parsing attributes:', error);
+            parsedAttributes = [];
+          }
+        }
         form.setFieldsValue({
           ...product,
-          attributes: Array.isArray(product.attributes) ? product.attributes : [],
+          category_id: product.category_id,
+          brand_id: product.brand_id,
+          actual_price: parseFloat(product.actual_price),
+          off_percentage_value: parseFloat(product.off_percentage_value),
+          price: parseFloat(product.price),
+          cost: parseFloat(product.cost),
+          delivery_charges: parseFloat(product.delivery_charges),
+          quantity: parseInt(product.quantity),
+          sold: parseInt(product.sold),
+          max_quantity_per_user: parseInt(product.max_quantity_per_user),
+          is_deal: product.is_deal,
+          is_hot_deal: product.is_hot_deal,
+          vat_included: product.vat_included,
+          attributes: parsedAttributes,
         });
-        setExistingMainImage(product.image_url);
-        setExistingTabImages(product.tabs_image_url || []);
+        // Set existing images if available
+        if (product.image_url) {
+          setMainImage(product.image_url);
+        }
+        if (Array.isArray(product.tabs_image_url)) {
+          setTabImages(product.tabs_image_url);
+        }
       } catch (error) {
         console.error('Error fetching product:', error);
         message.error('Failed to fetch product details');
@@ -60,33 +85,28 @@ const EditProduct = () => {
     }
   };
 
+  const translateText = async (text, targetLang) => {
+    try {
+      const translatedText = await translate(text, { to: targetLang });
+      return translatedText;
+    } catch (error) {
+      console.error('Translation error:', error);
+      return '';
+    }
+  };
+
+  const handleEnglishInputChange = async (e, field) => {
+    const englishValue = e.target.value;
+    if (englishValue) {
+      const arabicValue = await translateText(englishValue, 'ar');
+      form.setFieldsValue({ [`ar_${field.split('en_')[1]}`]: arabicValue });
+    }
+  };
+
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const formattedAttributes = Array.isArray(values.attributes) 
-        ? values.attributes.filter(attr => attr && attr.attribute_id && attr.values && attr.values.length > 0)
-        : [];
-
-      const formattedValues = {
-        ...values,
-        actual_price: parseFloat(values.actual_price),
-        off_percentage_value: parseFloat(values.off_percentage_value),
-        price: parseFloat(values.price),
-        cost: parseFloat(values.cost), // Add this line
-        delivery_charges: parseFloat(values.delivery_charges),
-        quantity: parseInt(values.quantity),
-        max_quantity_per_user: parseInt(values.max_quantity_per_user),
-        sold: parseInt(values.sold),
-        attributes: JSON.stringify(formattedAttributes),
-        mainImage: mainImage,
-        tabImages: newTabImages.map(file => `uploads\\${file.name}`),
-        is_deal: values.is_deal || false,
-        is_hot_deal: values.is_hot_deal || false,
-        vat_included: values.vat_included || false,
-        image_url: existingMainImage,
-        tabs_image_url: JSON.stringify([...existingTabImages, ...newTabImages.map(file => `uploads\\${file.name}`)])
-      };
-
+      const formattedValues = formatProductData(values);
       await updateProduct(id, formattedValues);
       message.success('Product updated successfully');
       navigate('/dashboard/products');
@@ -98,58 +118,51 @@ const EditProduct = () => {
     }
   };
 
+  const formatProductData = (values) => {
+    let formattedAttributes = [];
+    if (typeof values.attributes === 'string') {
+      try {
+        formattedAttributes = JSON.parse(values.attributes);
+      } catch (error) {
+        console.error('Error parsing attributes:', error);
+      }
+    } else if (Array.isArray(values.attributes)) {
+      formattedAttributes = values.attributes.filter(attr => 
+        attr && attr.attribute_id && attr.values && attr.values.length > 0
+      );
+    }
+
+    return {
+      ...values,
+      actual_price: parseFloat(values.actual_price),
+      off_percentage_value: parseFloat(values.off_percentage_value),
+      price: parseFloat(values.price),
+      cost: parseFloat(values.cost),
+      delivery_charges: parseFloat(values.delivery_charges),
+      quantity: parseInt(values.quantity),
+      max_quantity_per_user: parseInt(values.max_quantity_per_user),
+      sold: parseInt(values.sold),
+      attributes: formattedAttributes,
+      mainImage: mainImage,
+      tabImages: tabImages,
+      is_deal: values.is_deal || false,
+      is_hot_deal: values.is_hot_deal || false,
+      vat_included: values.vat_included === undefined ? true : values.vat_included
+    };
+  };
+
   const handleMainImageUpload = (info) => {
     setMainImage(info.file);
   };
 
   const handleTabImagesUpload = ({ fileList }) => {
-    const newImages = fileList.filter(file => file.originFileObj).map(file => file.originFileObj);
-    setNewTabImages(newImages);
-  };
-  
-  const handleRemoveMainImage = () => {
-    setExistingMainImage(null);
-    form.setFieldsValue({ image_url: null });
-  };
-
-  const handleRemoveTabImage = (index, isExisting = true) => {
-    if (isExisting) {
-      setExistingTabImages(prev => prev.filter((_, i) => i !== index));
-    } else {
-      setNewTabImages(prev => prev.filter((_, i) => i !== index));
-    }
+    setTabImages(fileList.map(file => file.originFileObj));
   };
 
   const getImageUrl = (path) => {
     return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${path}`;
   };
 
-  const translateText = async (text, targetLang) => {
-    try {
-      const translatedText = await translate(text, { to: targetLang });
-      return translatedText;
-    } catch (error) {
-      console.error('Translation error:', error);
-      return '';
-    }
-  };
-
-  const handleEnglishTitleChange = async (e) => {
-    const englishTitle = e.target.value;
-    if (englishTitle) {
-      const arabicTitle = await translateText(englishTitle, 'ar');
-      form.setFieldsValue({ ar_title: arabicTitle });
-    }
-  };
-
-  const handleEnglishDescriptionChange = async (e) => {
-    const englishDescription = e.target.value;
-    if (englishDescription) {
-      const arabicDescription = await translateText(englishDescription, 'ar');
-      form.setFieldsValue({ ar_description: arabicDescription });
-    }
-  };
-  
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: '24px', overflowY: 'auto' }}>
@@ -199,7 +212,7 @@ const EditProduct = () => {
                 />
               </Form.Item>
               <Form.Item name="en_title" label="English Title" rules={[{ required: true }]}>
-                <Input onChange={handleEnglishTitleChange} />
+                <Input onChange={(e) => handleEnglishInputChange(e, 'en_title')} />
               </Form.Item>
               <Form.Item name="ar_title" label="Arabic Title" rules={[{ required: true }]}>
                 <Input />
@@ -214,7 +227,7 @@ const EditProduct = () => {
               </Form.Item>
             </div>
             <Form.Item name="en_description" label="English Description" rules={[{ required: true }]}>
-              <TextArea rows={4} onChange={handleEnglishDescriptionChange} />
+              <TextArea rows={4} onChange={(e) => handleEnglishInputChange(e, 'en_description')} />
             </Form.Item>
             <Form.Item name="ar_description" label="Arabic Description" rules={[{ required: true }]}>
               <TextArea rows={4} />
@@ -325,7 +338,7 @@ const EditProduct = () => {
               </Form.Item>
             </div>
 
-            <Form.Item name="mainImage" label="Main Image" rules={[{ required: true }]}>
+            <Form.Item name="mainImage" label="Main Image">
               <Upload
                 beforeUpload={() => false}
                 onChange={handleMainImageUpload}

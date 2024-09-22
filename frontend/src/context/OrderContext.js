@@ -117,6 +117,30 @@ export const OrderProvider = ({ children }) => {
     }
   };
 
+  const assignDeliveryType = async (id, deliveryTypeName) => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await axios.put(
+        `${API_URL}/orders/${id}/assign-delivery-type`,
+        { deliveryTypeName },
+        { headers }
+      );
+      
+      // Refresh the order lists after assigning delivery type
+      await Promise.all([
+        fetchPendingOrders(),
+        fetchConfirmedOrders(),
+        fetchDeliveredOrders(),
+        fetchCancelledOrders()
+      ]);
+
+      return response.data;
+    } catch (error) {
+      console.error('Error assigning delivery type:', error);
+      throw error;
+    }
+  };
+
   const value = {
     pendingOrders,
     confirmedOrders,
@@ -130,7 +154,8 @@ export const OrderProvider = ({ children }) => {
     confirmOrder,
     cancelOrder,
     getOrderDetails,
-    deliverOrder, // Add this new function to the context value
+    deliverOrder,
+    assignDeliveryType, // Add this new function to the context value
   };
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

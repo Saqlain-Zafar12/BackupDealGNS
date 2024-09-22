@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CategoryProvider } from './context/CategoryContext';
 import { BrandProvider } from './context/BrandContext'; // Import BrandProvider
+import { DeliveryTypeProvider } from './context/deliveryTypeContext'; // Import DeliveryTypeProvider
 import Cookies from 'js-cookie';
 import { v4 as uuidv4 } from 'uuid';
 import Footer from "./components/Footer";
@@ -26,6 +27,7 @@ import Login from './pages/Login/Login';
 import { GlobalProvider } from './context/GlobalContext';
 import Dashboard from './pages/Dashboard/Dashboard';
 import UserOrders from './components/UserOrders';
+import DeliveryTypeList from './pages/Dashboard/DeliveryTypeList'; // Import DeliveryTypeList
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -100,6 +102,7 @@ function AppContent() {
         <Route path="confirmed-orders" element={<ConfirmOrderList />} />
         <Route path="delivered-orders" element={<DeliveredOrderList />} />
         <Route path="cancelled-orders" element={<CancelledOrderList />} />
+        <Route path="delivery-types" element={<DeliveryTypeList />} />
       </Route>
 
       <Route path="/orders" element={<UserOrders />} />
@@ -112,8 +115,16 @@ function AppContent() {
 function App() {
   return (
     <Router>
-       <GlobalProvider>
-        <AppContent />
+      <GlobalProvider>
+        <AuthProvider>
+          <CategoryProvider>
+            <BrandProvider>
+              <DeliveryTypeProvider>
+                <AppContent />
+              </DeliveryTypeProvider>
+            </BrandProvider>
+          </CategoryProvider>
+        </AuthProvider>
       </GlobalProvider>
     </Router>
   );

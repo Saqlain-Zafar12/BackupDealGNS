@@ -95,3 +95,77 @@ exports.getProductStats = async (req, res) => {
     res.status(500).json({ error: 'Error fetching product stats', details: err.message });
   }
 };
+
+exports.getMonthlyRevenue = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        DATE_TRUNC('month', orders.created_at) AS month,
+        SUM(orders.quantity * products.price) AS revenue
+      FROM orders
+      JOIN products ON orders.product_id = products.id
+      WHERE orders.created_at >= NOW() - INTERVAL '12 months'
+      GROUP BY DATE_TRUNC('month', orders.created_at)
+      ORDER BY month
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching monthly revenue:', err);
+    res.status(500).json({ error: 'Error fetching monthly revenue', details: err.message });
+  }
+};
+
+exports.getMonthlySales = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        DATE_TRUNC('month', created_at) AS month,
+        SUM(quantity) AS sales
+      FROM orders
+      WHERE created_at >= NOW() - INTERVAL '12 months'
+      GROUP BY DATE_TRUNC('month', created_at)
+      ORDER BY month
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching monthly sales:', err);
+    res.status(500).json({ error: 'Error fetching monthly sales', details: err.message });
+  }
+};
+
+exports.getWeeklyRevenue = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        DATE_TRUNC('week', orders.created_at) AS week,
+        SUM(orders.quantity * products.price) AS revenue
+      FROM orders
+      JOIN products ON orders.product_id = products.id
+      WHERE orders.created_at >= NOW() - INTERVAL '12 weeks'
+      GROUP BY DATE_TRUNC('week', orders.created_at)
+      ORDER BY week
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching weekly revenue:', err);
+    res.status(500).json({ error: 'Error fetching weekly revenue', details: err.message });
+  }
+};
+
+exports.getWeeklySales = async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        DATE_TRUNC('week', created_at) AS week,
+        SUM(quantity) AS sales
+      FROM orders
+      WHERE created_at >= NOW() - INTERVAL '12 weeks'
+      GROUP BY DATE_TRUNC('week', created_at)
+      ORDER BY week
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching weekly sales:', err);
+    res.status(500).json({ error: 'Error fetching weekly sales', details: err.message });
+  }
+};
