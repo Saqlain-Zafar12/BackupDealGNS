@@ -18,7 +18,7 @@ const ProductList = () => {
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
-
+  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
   const handleDeactivate = async (id) => {
     try {
       await deleteProduct(id);
@@ -105,7 +105,7 @@ const ProductList = () => {
             {selectedProduct.image_url ? (
               <Image
                 width={200}
-                src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${selectedProduct.image_url}`}
+                src={`${backendUrl}/${selectedProduct.image_url}`}
                 alt={selectedProduct.en_title}
               />
             ) : (
@@ -120,7 +120,7 @@ const ProductList = () => {
                     <Image
                       key={index}
                       width={100}
-                      src={`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${url}`}
+                      src={`${backendUrl}/${url}`}
                       alt={`Tab image ${index + 1}`}
                     />
                   ))}

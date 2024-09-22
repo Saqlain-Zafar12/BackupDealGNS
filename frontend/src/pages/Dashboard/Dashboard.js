@@ -158,14 +158,7 @@ const Dashboard = () => {
                 prefix={<MoneyCollectOutlined />}
                 suffix="AED"
               />
-              <Statistic
-                title="Daily Change"
-                value={revenueSummary.change}
-                precision={2}
-                valueStyle={{ color: revenueSummary.isPositive ? '#3f8600' : '#cf1322' }}
-                prefix={revenueSummary.isPositive ? "+" : "-"}
-                suffix="%"
-              />
+           
             </Card>
           </Col>
           <Col xs={24} lg={12}>

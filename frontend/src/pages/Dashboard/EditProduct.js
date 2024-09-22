@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload, Image, Layout } from 'antd';
-import { MinusCircleOutlined, PlusOutlined, UploadOutlined, CloseOutlined } from '@ant-design/icons';
+import { MinusCircleOutlined, PlusOutlined, UploadOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
 import { useCategory } from '../../context/CategoryContext';
 import { useBrand } from '../../context/BrandContext';
@@ -23,11 +23,22 @@ const EditProduct = () => {
   const [loading, setLoading] = useState(false);
   const [mainImage, setMainImage] = useState(null);
   const [tabImages, setTabImages] = useState([]);
+  const [mainImageUrl, setMainImageUrl] = useState(null);
+  const [tabImageUrls, setTabImageUrls] = useState([]);
+  const [tabImageFiles, setTabImageFiles] = useState([]);
+  const [mainImageFile, setMainImageFile] = useState([]);
+
+  const getFullImageUrl = (path) => {
+    return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000'}/${path}`;
+  };
+
+  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const product = await getProductById(id);
+        console.log(product,"product");
         let parsedAttributes = product.attributes;
         if (typeof product.attributes === 'string') {
           try {
@@ -56,10 +67,18 @@ const EditProduct = () => {
         });
         // Set existing images if available
         if (product.image_url) {
-          setMainImage(product.image_url);
+          setMainImageFile([{
+            uid: '-1',
+            name: product.image_url.split('\\').pop(),
+            status: 'done',
+            url: `${backendUrl}/${product.image_url}`
+          }]);
+        } else {
+          setMainImageFile([]); // Ensure it's an empty array if no image
         }
         if (Array.isArray(product.tabs_image_url)) {
-          setTabImages(product.tabs_image_url);
+          setTabImageUrls(product.tabs_image_url.map(url => getFullImageUrl(url)));
+          setTabImageFiles(product.tabs_image_url.map(url => ({ url })));
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -143,24 +162,39 @@ const EditProduct = () => {
       max_quantity_per_user: parseInt(values.max_quantity_per_user),
       sold: parseInt(values.sold),
       attributes: formattedAttributes,
-      mainImage: mainImage,
+      mainImage: mainImageFile.length > 0 ? mainImageFile[0].originFileObj || mainImageFile[0] : null,
       tabImages: tabImages,
+      tabs_image_url: tabImageFiles.map(file => file.url || file.name),
       is_deal: values.is_deal || false,
       is_hot_deal: values.is_hot_deal || false,
       vat_included: values.vat_included === undefined ? true : values.vat_included
     };
   };
 
-  const handleMainImageUpload = (info) => {
-    setMainImage(info.file);
+  const handleMainImageUpload = ({ fileList }) => {
+    // Only keep the last uploaded file
+    const newFileList = fileList.slice(-1);
+    setMainImageFile(newFileList);
+  };
+
+  const handleRemoveMainImage = () => {
+    setMainImageFile([]);
   };
 
   const handleTabImagesUpload = ({ fileList }) => {
-    setTabImages(fileList.map(file => file.originFileObj));
-  };
+    const newTabImages = fileList.map(file => file.originFileObj || file);
+    setTabImages(newTabImages);
 
-  const getImageUrl = (path) => {
-    return `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/v1'}/${path}`;
+    const newTabImageUrls = fileList.map(file => {
+      if (file.originFileObj) {
+        return URL.createObjectURL(file.originFileObj);
+      } else {
+        return file.url || getFullImageUrl(file.name);
+      }
+    });
+
+    setTabImageUrls(newTabImageUrls);
+    setTabImageFiles(fileList);
   };
 
   return (
@@ -168,7 +202,7 @@ const EditProduct = () => {
       <Content style={{ padding: '24px', overflowY: 'auto' }}>
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold mb-4">Edit Product</h2>
-          <Form form={form} onFinish={onFinish} layout="vertical">
+          <Form form={form} onFinish={onFinish} layout="vertical" initialValues={{ attributes: [], vat_included: true }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
               <Form.Item name="category_id" label="Category" rules={[{ required: true }]}>
                 <Select placeholder="Select a category">
@@ -193,14 +227,18 @@ const EditProduct = () => {
                   onChange={handlePriceChange}
                 />
               </Form.Item>
-              <Form.Item name="off_percentage_value" label="Discount Percentage" rules={[{ required: true }]}>
+              <Form.Item name="off_percentage_value" label="Discount Percentage" rules={[
+                { required: true },
+                { type: 'number', min: 0, max: 100, message: 'Please enter a number between 0 and 100' }
+              ]}>
                 <InputNumber
+                  type="number"
                   min={0}
                   max={100}
                   step={1}
-                  precision={2}
                   style={{ width: '100%' }}
                   onChange={handlePriceChange}
+                  parser={value => Number(value)}
                 />
               </Form.Item>
               <Form.Item name="price" label="Final Price" rules={[{ required: true }]}>
@@ -217,12 +255,14 @@ const EditProduct = () => {
               <Form.Item name="ar_title" label="Arabic Title" rules={[{ required: true }]}>
                 <Input />
               </Form.Item>
-              <Form.Item name="cost" label="Cost" rules={[{ required: true }]}>
+              <Form.Item name="cost" label="Cost" rules={[{ required: true }, { type: 'number' }]}>
                 <InputNumber
                   min={0}
                   step={0.01}
                   precision={2}
                   style={{ width: '100%' }}
+                  type="number"
+                  parser={value => Number(value)}
                 />
               </Form.Item>
             </div>
@@ -304,12 +344,14 @@ const EditProduct = () => {
             </Form.List>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-              <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }]}>
+              <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }, { type: 'number' }]}>
                 <InputNumber
                   min={0}
                   step={0.01}
                   precision={2}
                   style={{ width: '100%' }}
+                  keyboard={false}
+                  type="number"
                 />
               </Form.Item>
               <Form.Item name="quantity" label="Total Quantity" rules={[{ required: true }]}>
@@ -326,6 +368,14 @@ const EditProduct = () => {
                   step={1}
                   precision={0}
                   style={{ width: '100%' }}
+                  type="number"
+                  keyboard={false}
+                  inputMode="numeric"
+                  onKeyDown={(e) => {
+                    if (e.key === '.' || e.key === 'e') {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </Form.Item>
               <Form.Item name="max_quantity_per_user" label="Max Quantity Per User" rules={[{ required: true }]}>
@@ -340,13 +390,32 @@ const EditProduct = () => {
 
             <Form.Item name="mainImage" label="Main Image">
               <Upload
-                beforeUpload={() => false}
+                listType="picture-card"
+                fileList={mainImageFile}
                 onChange={handleMainImageUpload}
+                beforeUpload={() => false}
                 maxCount={1}
+                onRemove={handleRemoveMainImage}
               >
-                <Button icon={<UploadOutlined />}>Upload Main Image</Button>
+                {mainImageFile.length >= 1 ? null : (
+                  <div>
+                    <PlusOutlined />
+                    <div style={{ marginTop: 8 }}>Upload</div>
+                  </div>
+                )}
               </Upload>
             </Form.Item>
+
+            {mainImageFile.length > 0 && (
+              <div style={{ marginTop: -24, marginBottom: 16 }}>
+                <Button 
+                  icon={<EditOutlined />} 
+                  onClick={() => document.querySelector('input[type="file"]').click()}
+                >
+                  Replace Image
+                </Button>
+              </div>
+            )}
 
             <Form.Item name="tabImages" label="Tab Images">
               <Upload
@@ -354,6 +423,7 @@ const EditProduct = () => {
                 onChange={handleTabImagesUpload}
                 multiple
                 maxCount={5}
+                fileList={tabImageFiles}
               >
                 <Button icon={<UploadOutlined />}>Upload Tab Images</Button>
               </Upload>
@@ -367,7 +437,7 @@ const EditProduct = () => {
                 <Switch />
               </Form.Item>
               <Form.Item name="vat_included" label="VAT Included" valuePropName="checked">
-                <Switch />
+                <Switch defaultChecked />
               </Form.Item>
             </div>
             <Form.Item>

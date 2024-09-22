@@ -141,14 +141,18 @@ const AddProduct = () => {
                   onChange={handlePriceChange}
                 />
               </Form.Item>
-              <Form.Item name="off_percentage_value" label="Discount Percentage" rules={[{ required: true }]}>
+              <Form.Item name="off_percentage_value" label="Discount Percentage" rules={[
+                { required: true },
+                { type: 'number', min: 0, max: 100, message: 'Please enter a number between 0 and 100' }
+              ]}>
                 <InputNumber
+                  type="number"
                   min={0}
                   max={100}
                   step={1}
-                  precision={2}
                   style={{ width: '100%' }}
                   onChange={handlePriceChange}
+                  parser={value => Number(value)}
                 />
               </Form.Item>
               <Form.Item name="price" label="Final Price" rules={[{ required: true }]}>
@@ -165,12 +169,14 @@ const AddProduct = () => {
               <Form.Item name="ar_title" label="Arabic Title" rules={[{ required: true }]}>
                 <Input />
               </Form.Item>
-              <Form.Item name="cost" label="Cost" rules={[{ required: true }]}>
+              <Form.Item name="cost" label="Cost" rules={[{ required: true }, { type: 'number' }]}>
                 <InputNumber
                   min={0}
                   step={0.01}
                   precision={2}
                   style={{ width: '100%' }}
+                  type="number"
+                  parser={value => Number(value)}
                 />
               </Form.Item>
             </div>
@@ -252,12 +258,14 @@ const AddProduct = () => {
             </Form.List>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-              <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }]}>
+              <Form.Item name="delivery_charges" label="Delivery Charges" rules={[{ required: true }, { type: 'number' }]}>
                 <InputNumber
                   min={0}
                   step={0.01}
                   precision={2}
                   style={{ width: '100%' }}
+                  keyboard={false}
+                  type="number"
                 />
               </Form.Item>
               <Form.Item name="quantity" label="Total Quantity" rules={[{ required: true }]}>
@@ -274,6 +282,14 @@ const AddProduct = () => {
                   step={1}
                   precision={0}
                   style={{ width: '100%' }}
+                  type="number"
+                  keyboard={false}
+                  inputMode="numeric"
+                  onKeyDown={(e) => {
+                    if (e.key === '.' || e.key === 'e') {
+                      e.preventDefault();
+                    }
+                  }}
                 />
               </Form.Item>
               <Form.Item name="max_quantity_per_user" label="Max Quantity Per User" rules={[{ required: true }]}>

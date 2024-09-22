@@ -160,7 +160,19 @@ exports.getProductDetails = async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
-    res.json(result.rows[0]);
+    
+    // Parse the attributes field
+    const product = result.rows[0];
+    if (product.attributes) {
+      try {
+        product.attributes = JSON.parse(product.attributes);
+      } catch (parseError) {
+        console.error('Error parsing attributes:', parseError);
+        // If parsing fails, keep the original string
+      }
+    }
+    
+    res.json(product);
   } catch (err) {
     console.error('Error fetching product details:', err);
     res.status(500).json({ error: 'Error fetching product details', details: err.message });
