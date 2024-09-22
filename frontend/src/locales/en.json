@@ -9,7 +9,9 @@
       "button": "Search"
     },
     "productList": {
-      "recommendedProducts": "Recommended Products"
+      "allProducts": "All Products",
+      "recommendedProducts": "Recommended Products",
+      "searchResults": "Search Results"
     },
     "superDeals": {
       "title": "Super Deals",
@@ -24,7 +26,7 @@
     },
     "footer": {
       "contactUs": "Contact Us",
-      "companyInfo": "Website owned by Jetronics LLC, Shams Free Zone, Sharjah Media City, Sharjah, UAE",
+      "companyInfo": "Website owned by dealsGNS LLC, Shams Free Zone, Sharjah Media City, Sharjah, UAE",
       "information": "Information",
       "aboutUs": "About Us",
       "unclaimableProducts": "Un-Claimable Products",
@@ -54,6 +56,7 @@
       "fullNameRequired": "Please enter your full name",
       "mobile": "Mobile*",
       "mobileRequired": "Please enter your mobile number",
+      "invalidDubaiNumber": "Please enter a valid Dubai mobile number",
       "quantity": "Quantity*",
       "quantityRequired": "Please select a quantity",
       "emirates": "Emirates*",
@@ -65,7 +68,8 @@
       "submitOrder": "SUBMIT ORDER",
       "description": "Description",
       "productDescription": "Luxurious and durable memory foam pillow with cooling gel technology. Designed to provide optimal neck and head support for a restful night's sleep. Hypoallergenic and dust mite resistant, suitable for all sleeping positions. Comes with a breathable, machine-washable cover for easy maintenance.",
-      "orderSuccess": "Order placed successfully!"
+      "orderSuccess": "Order placed successfully!",
+      "mainImage": "Main Image"
     },
     "orderConfirmation": {
       "title": "Order Confirmed!",
@@ -83,7 +87,9 @@
       "free": "Free",
       "grandTotal": "Grand Total",
       "viewMoreOffers": "View More Offers",
-      "thankYou": "Thanks for shopping with us!"
+      "thankYou": "Thanks for shopping with us!",
+      "fullName": "Full Name",
+      "mobileNumber": "Mobile Number"
     },
     "carousel": {
       "previousSlide": "Previous slide",
@@ -91,5 +97,19 @@
       "goToSlide": "Go to slide {number}",
       "autoPlay": "Auto play",
       "pauseAutoPlay": "Pause auto play"
+    },
+    "userOrders": {
+      "title": "My Orders",
+      "noOrders": "You have no orders yet.",
+      "orderNumber": "Order #{{number}}",
+      "orderDate": "Order Date: {{date}}",
+      "totalAmount": "Total Amount: {{amount}} AED",
+      "status": "Status: {{status}}",
+      "items": "Order Items:",
+      "quantity": "Quantity: {{quantity}}",
+      "price": "Price: {{price}} AED"
+    },
+    "errors": {
+      "fetchOrders": "Error fetching orders. Please try again later."
     }
   }

@@ -1,21 +1,40 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaCheckCircle, FaBox, FaShoppingBag, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useWebRelated } from '../context/WebRelatedContext';
 
 const OrderConfirmation = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { getUserOrders } = useWebRelated();
+  const [orderDetails, setOrderDetails] = useState(null);
 
   useEffect(() => {
     const storedLanguage = sessionStorage.getItem('language');
     if (storedLanguage) {
       i18n.changeLanguage(storedLanguage);
     }
-  }, [i18n]);
+
+    const fetchOrderDetails = async () => {
+      try {
+        const order = await getUserOrders();
+        setOrderDetails(order);
+      } catch (error) {
+        console.error('Error fetching user order:', error);
+        // Handle error (e.g., show error message to user)
+      }
+    };
+
+    fetchOrderDetails();
+  }, [i18n, getUserOrders]);
 
   const isRTL = i18n.language === 'ar';
+  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
 
+  if (!orderDetails) {
+    return <div>Loading...</div>; // Or a more sophisticated loading state
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white py-12 px-4 sm:px-6 lg:px-8">
@@ -36,43 +55,44 @@ const OrderConfirmation = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <p className="text-gray-600">{t('orderConfirmation.orderDate')}: <span className="font-semibold">14 Sep, 2024</span></p>
-                <p className="text-gray-600">{t('orderConfirmation.orderNo')}: <span className="font-semibold">688564</span></p>
+                <p className="text-gray-600">{t('orderConfirmation.fullName')}: <span className="font-semibold">{orderDetails.full_name}</span></p>
+                <p className="text-gray-600">{t('orderConfirmation.mobileNumber')}: <span className="font-semibold">+{orderDetails.mobilenumber}</span></p>
                 <p className="text-gray-600">{t('orderConfirmation.payment')}: <span className="font-semibold">{t('orderConfirmation.cashOnDelivery')}</span></p>
               </div>
               <div>
                 <h3 className="text-lg font-semibold mb-2">{t('orderConfirmation.shippingAddress')}</h3>
-                <p className="text-gray-600">Odette Stafford</p>
-                <p className="text-gray-600">Soluta consectetur a, Al ain</p>
+                <p className="text-gray-600">{orderDetails.shipping_address}</p>
               </div>
             </div>
 
             <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center">
-                    <FaShoppingBag className="text-3xl text-gray-400" />
+              {orderDetails.products.map((product, index) => (
+                <div key={index} className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center">
+                      <img src={`${backendUrl}/${product.main_image}`} alt={product.title} className="w-full h-full object-cover rounded-md" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">{isRTL ? product.ar_title : product.en_title}</h4>
+                      <p className="text-gray-500">{t('orderConfirmation.quantity')}: {product.quantity}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold">{t('orderConfirmation.productName')}</h4>
-                    <p className="text-gray-500">{t('orderConfirmation.quantity')}: 1</p>
-                  </div>
+                  <p className="font-semibold">{product.total} AED</p>
                 </div>
-                <p className="font-semibold">59 AED</p>
-              </div>
+              ))}
 
               <div className="border-t border-gray-200 pt-4 space-y-2">
                 <div className="flex justify-between text-gray-600">
                   <span>{t('orderConfirmation.subtotal')}</span>
-                  <span>59 AED</span>
+                  <span>{orderDetails.subtotal} AED</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>{t('orderConfirmation.shippingFee')}</span>
-                  <span className="text-green-500">{t('orderConfirmation.free')}</span>
+                  <span>{orderDetails.shipping_fee > 0 ? `${orderDetails.shipping_fee} AED` : t('orderConfirmation.free')}</span>
                 </div>
                 <div className="flex justify-between text-lg font-semibold">
                   <span>{t('orderConfirmation.grandTotal')}</span>
-                  <span>59 AED</span>
+                  <span>{orderDetails.grand_total} AED</span>
                 </div>
               </div>
             </div>

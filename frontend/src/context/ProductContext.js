@@ -69,8 +69,8 @@ export const ProductProvider = ({ children }) => {
   const createFormData = (productData) => {
     const formData = new FormData();
     Object.keys(productData).forEach(key => {
-      if (['attributes', 'tabs_image_url'].includes(key)) {
-        formData.append(key, productData[key]);
+      if (key === 'attributes' || key === 'tabs_image_url') {
+        formData.append(key, JSON.stringify(productData[key])); // Stringify the attributes and tabs_image_url
       } else if (key === 'mainImage' && productData[key]) {
         formData.append('mainImage', productData[key]);
       } else if (key === 'tabImages' && productData[key] && productData[key].length > 0) {
@@ -85,7 +85,7 @@ export const ProductProvider = ({ children }) => {
   const deleteProduct = async (id) => {
     try {
       const headers = getAuthHeaders();
-      await axios.put(`${API_URL}/products/deactivate/${id}`,null, { headers });
+      await axios.put(`${API_URL}/products/deactivate/${id}`, null, { headers });
       setProducts(prevProducts => prevProducts.filter(product => product.id !== id));
     } catch (error) {
       console.error('Error deleting product:', error);

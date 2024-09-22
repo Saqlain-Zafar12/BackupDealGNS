@@ -4,6 +4,7 @@ import { Form, Input, Select, Button, message, Layout, Row, Col, Card, Typograph
 import { FaShoppingCart, FaTruck, FaPercent } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useWebRelated } from '../context/WebRelatedContext';
+import Cookies from 'js-cookie';
 
 const { Option } = Select;
 const { Content } = Layout;
@@ -41,13 +42,13 @@ const PlaceOrder = () => {
     fetchProductData();
   }, [product, getWebProductDataById, t]);
 
-  const productImages = [
-    'https://plus.unsplash.com/premium_photo-1679830513865-cd8256abe2c1?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1607930647942-2820445f77e8?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://plus.unsplash.com/premium_photo-1676790134077-4ade5c365cfe?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1605947064908-65712a69ee6d?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    'https://images.unsplash.com/photo-1711700357997-7dd71318d2bd?q=80&w=1475&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  ];
+  const validateDubaiPhoneNumber = (_, value) => {
+    const phoneRegex = /^(50|52|54|55|56)\d{7}$/;
+    if (!value || phoneRegex.test(value)) {
+      return Promise.resolve();
+    }
+    return Promise.reject(new Error(t('placeOrder.invalidDubaiNumber')));
+  };
 
   const onFinish = async (values) => {
     try {
@@ -57,11 +58,11 @@ const PlaceOrder = () => {
       });
 
       const orderData = {
-        web_user_id: 'user123', // Replace with actual user ID
+        web_user_id: Cookies.get('web_user_id'),
         full_name: values.fullName,
-        mobilenumber: values.mobile,
+        mobilenumber: `971${values.mobile}`, // Prepend 971 to the mobile number
         quantity: values.quantity,
-        selected_emirates: 1,
+        selected_emirates: values.emirates,
         delivery_address: values.address,
         product_id: product.id,
         selected_attributes: selectedAttributes,
@@ -100,6 +101,17 @@ const PlaceOrder = () => {
   const title = i18n.language === 'ar' ? productData.ar_title : productData.en_title;
   const description = i18n.language === 'ar' ? productData.ar_description : productData.en_description;
 
+  // Parse the tabs_image_url JSON if it's a string, or use an empty array if it's undefined
+  const tabsImageUrl = productData.tabs_image_url
+    ? (typeof productData.tabs_image_url === 'string' 
+        ? JSON.parse(productData.tabs_image_url) 
+        : productData.tabs_image_url)
+    : [];
+
+  // Use a default image if tabsImageUrl is empty
+  const defaultImage = 'path/to/default/image.jpg'; // Replace with your default image path
+  const currentImage = tabsImageUrl[selectedImage] || defaultImage;
+  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content className="px-4 py-12">
@@ -122,7 +134,7 @@ const PlaceOrder = () => {
                 >
                   <img
                     ref={imageRef}
-                    src={productImages[selectedImage]}
+                    src={`${backendUrl}/${currentImage}`}
                     alt={`${t('placeOrder.mainImage')}`}
                     style={{
                       width: '100%',
@@ -134,20 +146,22 @@ const PlaceOrder = () => {
                     }}
                   />
                 </div>
-                <Tabs defaultActiveKey="0" onChange={handleImageChange}>
-                  {productImages?.map((image, index) => (
-                    <TabPane
-                      tab={
-                        <img
-                          src={image}
-                          alt={`${t('placeOrder.thumbnail')} ${index + 1}`}
-                          className="w-16 h-16 object-cover"
-                        />
-                      }
-                      key={index}
-                    />
-                  ))}
-                </Tabs>
+                {tabsImageUrl.length > 0 && (
+                  <Tabs defaultActiveKey="0" onChange={handleImageChange}>
+                    {tabsImageUrl.map((image, index) => (
+                      <TabPane
+                        tab={
+                          <img
+                            src={`${backendUrl}/${image}`}
+                            alt={`${t('placeOrder.thumbnail')} ${index + 1}`}
+                            className="w-16 h-16 object-cover"
+                          />
+                        }
+                        key={index}
+                      />
+                    ))}
+                  </Tabs>
+                )}
                 <div className="mt-4">
                   <Row justify="space-between" align="middle">
                     <Col>
@@ -160,7 +174,7 @@ const PlaceOrder = () => {
                     </Col>
                     <Col>
                       <Text className="flex items-center">
-                        <FaPercent className="mr-1" /> {productData.discount}% {t('product.off')}
+                        <FaPercent className="mr-1" /> {productData.discount} {t('product.off')}
                       </Text>
                     </Col>
                   </Row>
@@ -195,9 +209,25 @@ const PlaceOrder = () => {
                   <Form.Item
                     name="mobile"
                     label={t('placeOrder.mobile')}
-                    rules={[{ required: true, message: t('placeOrder.mobileRequired') }]}
+                    rules={[
+                      { required: true, message: t('placeOrder.mobileRequired') },
+                      { validator: validateDubaiPhoneNumber }
+                    ]}
                   >
-                    <Input />
+                    <Input
+                      addonBefore={
+                        <div className="flex items-center w-[50px]">
+                          <img
+                            src="/—Pngtree—uae flag vector_13159076.png"
+                            alt="UAE Flag"
+                            className="w-4 mr-1"
+                          />
+                          +971
+                        </div>
+                      }
+                      maxLength={9}
+                      placeholder="50 XXX XXXX"
+                    />
                   </Form.Item>
                   <Form.Item
                     name="quantity"
@@ -234,10 +264,13 @@ const PlaceOrder = () => {
                     rules={[{ required: true, message: t('placeOrder.emiratesRequired') }]}
                   >
                     <Select>
-                      <Option value="">{t('placeOrder.selectCity')}</Option>
                       <Option value="dubai">Dubai</Option>
-                      <Option value="abudhabi">Abu Dhabi</Option>
+                      <Option value="abu_dhabi">Abu Dhabi</Option>
                       <Option value="sharjah">Sharjah</Option>
+                      <Option value="ajman">Ajman</Option>
+                      <Option value="fujairah">Fujairah</Option>
+                      <Option value="ras_al_khaimah">Ras Al Khaimah</Option>
+                      <Option value="umm_al_quwain">Umm Al Quwain</Option>
                     </Select>
                   </Form.Item>
                   <Form.Item

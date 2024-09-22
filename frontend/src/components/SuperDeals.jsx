@@ -26,46 +26,50 @@ const SuperDealCard = ({ deal }) => {
   const title = i18n.language === 'ar' ? deal.ar_title : deal.en_title;
 
   return (
-    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6 p-2">
+    <div className="w-1/2 sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/6 p-2">
       <div 
         className="bg-white rounded-lg shadow-md overflow-hidden h-full flex flex-col transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-2xl group cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="relative overflow-hidden">
           <img
-          src={`${backendUrl}/${deal.main_image}`} 
+            src={`${backendUrl}/${deal.main_image}`} 
             alt={title} 
-            className="w-full h-40 object-cover transition-transform duration-300 group-hover:scale-110"
+            className="w-full h-36 sm:h-40 object-cover transition-transform duration-300 group-hover:scale-110"
           />
-          <div className="absolute top-0 start-0 bg-red-500 text-white px-2 py-1 text-xs font-bold flex items-center">
-            <FaFire className="me-1" /> {deal.hot_deal ? t('superDeals.hotDeal') : ''}
+          <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {deal.hot_deal && (
+              <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
+                <FaFire className="mr-1" /> {t('superDeals.hotDeal')}
+              </div>
+            )}
+            {isDeliveryFree(deal.delivery_charges) && (
+              <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
+                <FaTruck className="mr-1" /> {t('product.freeDelivery')}
+              </div>
+            )}
           </div>
-          {isDeliveryFree(deal.delivery_charges) && (
-            <div className="absolute top-0 end-0 bg-green-500 text-white px-2 py-1 text-xs font-bold flex items-center">
-              <FaTruck className="me-1" /> {t('product.freeDelivery')}
-            </div>
-          )}
-          <div className="absolute bottom-0 start-0 bg-blue-500 text-white px-2 py-1 text-xs font-bold flex items-center">
-            <FaPercent className="me-1" /> {deal.discount} {t('product.off')}
+          <div className="absolute bottom-2 left-2 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
+            <FaPercent className="mr-1" /> {deal.discount} {t('product.off')}
           </div>
           <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-            <button className="bg-white text-gray-800 px-4 py-2 rounded-full font-bold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 flex items-center">
-              <FaShoppingCart className="me-2" /> {t('superDeals.viewDeal')}
+            <button className="bg-white text-gray-800 px-3 py-1 sm:px-4 sm:py-2 rounded-full font-bold transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 flex items-center text-xs sm:text-sm">
+              <FaShoppingCart className="me-1 sm:me-2" /> {t('superDeals.viewDeal')}
             </button>
           </div>
         </div>
-        <div className="p-4 flex-grow flex flex-col justify-between">
+        <div className="p-2 sm:p-4 flex-grow flex flex-col justify-between">
           <div>
-            <Text strong className="text-sm block truncate group-hover:text-red-500 transition-colors duration-300">{title}</Text>
-            <div className="flex justify-between items-center mt-2">
-              <Text className="text-red-500 font-bold text-lg">{parseFloat(deal.total_price)} AED</Text>
+            <Text strong className="text-xs sm:text-sm block truncate group-hover:text-red-500 transition-colors duration-300">{title}</Text>
+            <div className="flex justify-between items-center mt-1 sm:mt-2">
+              <Text className="text-red-500 font-bold text-sm sm:text-lg">{parseFloat(deal.total_price)} AED</Text>
               <Text delete type="secondary" className="text-xs">
                 {parseFloat(deal.actual_price)} AED
               </Text>
             </div>
           </div>
           <div className="mt-auto">
-            <div className="mt-2">
+            <div className="mt-1 sm:mt-2">
               <Progress 
                 percent={(deal.sold / deal.quantity) * 100} 
                 size="small" 

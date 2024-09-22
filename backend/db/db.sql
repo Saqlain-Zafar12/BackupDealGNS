@@ -57,7 +57,8 @@ CREATE TABLE products (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (category_id) REFERENCES categories(id),
-  FOREIGN KEY (brand_id) REFERENCES brands(id)
+  FOREIGN KEY (brand_id) REFERENCES brands(id),
+  cost NUMERIC(10, 2) NOT NULL
 );
 
 CREATE TABLE orders (
@@ -66,7 +67,7 @@ CREATE TABLE orders (
   full_name VARCHAR(255) NOT NULL,
   mobilenumber BIGINT NOT NULL,
   quantity INTEGER NOT NULL CHECK (quantity > 0),
-  selected_emirates INTEGER NOT NULL CHECK (selected_emirates > 0),
+  selected_emirates VARCHAR(255) NOT NULL,
   delivery_address TEXT NOT NULL,
   product_id INTEGER NOT NULL,
   selected_attributes TEXT[] NOT NULL,

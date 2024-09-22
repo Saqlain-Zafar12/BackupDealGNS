@@ -72,6 +72,7 @@ const EditProduct = () => {
         actual_price: parseFloat(values.actual_price),
         off_percentage_value: parseFloat(values.off_percentage_value),
         price: parseFloat(values.price),
+        cost: parseFloat(values.cost), // Add this line
         delivery_charges: parseFloat(values.delivery_charges),
         quantity: parseInt(values.quantity),
         max_quantity_per_user: parseInt(values.max_quantity_per_user),
@@ -202,6 +203,14 @@ const EditProduct = () => {
               </Form.Item>
               <Form.Item name="ar_title" label="Arabic Title" rules={[{ required: true }]}>
                 <Input />
+              </Form.Item>
+              <Form.Item name="cost" label="Cost" rules={[{ required: true }]}>
+                <InputNumber
+                  min={0}
+                  step={0.01}
+                  precision={2}
+                  style={{ width: '100%' }}
+                />
               </Form.Item>
             </div>
             <Form.Item name="en_description" label="English Description" rules={[{ required: true }]}>

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, Typography, Space, message, Spin } from 'antd';
+import { Card, Typography, Space, Spin, Empty } from 'antd';
 import { FaTag, FaTruck } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useWebRelated } from '../context/WebRelatedContext';
@@ -8,7 +8,7 @@ import { useWebRelated } from '../context/WebRelatedContext';
 const { Meta } = Card;
 const { Text } = Typography;
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product }) => { 
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
@@ -24,12 +24,11 @@ const ProductCard = ({ product }) => {
   };
 
   // Use the appropriate language title and category
-  console.log(product);
   const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
   const title = i18n.language === 'ar' ? product.ar_title : product.en_title;
   const category = i18n.language === 'ar' ? product.ar_category : product.en_category;
   return (
-    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
+    <div className="w-1/2 sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
       <Card
         hoverable
         className="h-full"
@@ -39,9 +38,9 @@ const ProductCard = ({ product }) => {
             <img
               alt={title || 'Product Image'}
               src={`${backendUrl}/${product.main_image_url}`}
-              className="object-cover h-48 w-full"
+              className="object-cover h-36 sm:h-48 w-full"
             />
-            <div className="absolute top-2 left-2 flex gap-2">
+            <div className="absolute top-2 left-2 flex flex-col gap-1">
               {parseFloat(product.discount) > 0 && (
                 <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
                   <FaTag className="mr-1" /> {product.discount}% {t('product.off')}
@@ -55,21 +54,22 @@ const ProductCard = ({ product }) => {
             </div>
           </div>
         }
+        bodyStyle={{ padding: '12px' }}
       >
         <Meta
           title={
             <div>
-              <Text className="text-sm text-gray-500">{category}</Text>
-              <Text strong className="text-lg block">{title}</Text>
+              <Text className="text-xs sm:text-sm text-gray-500">{category}</Text>
+              <Text strong className="text-sm sm:text-lg block truncate">{title}</Text>
             </div>
           }
           description={
             <Space direction="vertical" className="w-full">
               <div className="flex justify-between items-center mt-2">
-                <Text className="text-lg font-semibold">
-                  {product.final_price} AED
+                <Text className="text-sm sm:text-lg font-semibold">
+                  {product.price || product.final_price} AED
                 </Text>
-                <Text type="secondary" className="text-sm">
+                <Text type="secondary" className="text-xs sm:text-sm">
                   {product.vat_included ? t('product.vatIncluded') : t('product.vatNotIncluded')}
                 </Text>
               </div>
@@ -83,31 +83,11 @@ const ProductCard = ({ product }) => {
 
 const ProductList = () => {
   const { t } = useTranslation();
-  const { getRecommendedProducts } = useWebRelated();
-  const [productData, setProductData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { currentView, recommendedProducts, searchResults, isSearching, isLoadingRecommended } = useWebRelated();
 
-  useEffect(() => {
-    const fetchRecommendedProducts = async () => {
-      try {
-        setLoading(true);
-        const products = await getRecommendedProducts();
-        setProductData(products || []); // Ensure it's always an array
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching recommended products:', error);
-        setError(t('errors.fetchRecommendedProducts'));
-        message.error(t('errors.fetchRecommendedProducts'));
-      } finally {
-        setLoading(false);
-      }
-    };
+  const productsToDisplay = currentView === 'searchResults' ? searchResults : recommendedProducts;
 
-    fetchRecommendedProducts();
-  }, [getRecommendedProducts, t]);
-
-  if (loading) {
+  if (isSearching || (currentView === 'home' && isLoadingRecommended)) {
     return (
       <div className="flex justify-center items-center h-64">
         <Spin size="large" />
@@ -115,28 +95,30 @@ const ProductList = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center text-red-500 p-4">
-        {error}
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-gray-100 py-10">
-      <div className="container mx-auto px-4">
-        <h2 className="text-2xl md:text-3xl font-bold mb-6">{t('productList.recommendedProducts')}</h2>
-        {productData.length > 0 ? (
+    <div className="bg-gray-100 py-6 sm:py-10">
+      <div className="container mx-auto px-2 sm:px-4">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 sm:mb-6">
+          {currentView === 'searchResults'
+            ? t('productList.searchResults')
+            : t('productList.recommendedProducts')}
+        </h2>
+        {productsToDisplay.length > 0 ? (
           <div className="flex flex-wrap -mx-2">
-            {productData.map((product, index) => (
-              <ProductCard key={index} product={product} />
+            {productsToDisplay.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-500 p-4">
-            {t('productList.noProductsAvailable')}
-          </div>
+          <Empty
+            description={
+              <span className="text-gray-500">
+                {currentView === 'searchResults'
+                  ? t('productList.noSearchResults')
+                  : t('productList.noProductsAvailable')}
+              </span>
+            }
+          />
         )}
       </div>
     </div>

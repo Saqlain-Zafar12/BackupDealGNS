@@ -25,6 +25,7 @@ import BrandList from './pages/Dashboard/BrandList';
 import Login from './pages/Login/Login';
 import { GlobalProvider } from './context/GlobalContext';
 import Dashboard from './pages/Dashboard/Dashboard';
+import UserOrders from './components/UserOrders';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -100,6 +101,8 @@ function AppContent() {
         <Route path="delivered-orders" element={<DeliveredOrderList />} />
         <Route path="cancelled-orders" element={<CancelledOrderList />} />
       </Route>
+
+      <Route path="/orders" element={<UserOrders />} />
 
       <Route path="*" element={<h1 className="text-2xl font-bold text-center mt-10">404: Page Not Found</h1>} />
     </Routes>

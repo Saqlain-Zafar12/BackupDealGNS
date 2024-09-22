@@ -16,13 +16,13 @@ const generateUniqueSKU = async () => {
 
 exports.addProduct = async (req, res) => {
   const {
-    category_id, brand_id, actual_price, off_percentage_value, price,
+    category_id, brand_id, actual_price, off_percentage_value, price, cost,
     en_title, ar_title, en_description, ar_description, attributes,
     delivery_charges, quantity, is_deal, is_hot_deal, vat_included,
-    max_quantity_per_user, sold // Add this new field
+    max_quantity_per_user, sold
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
+  if (!category_id || !brand_id || !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -33,12 +33,12 @@ exports.addProduct = async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO products (
-        category_id, brand_id, sku, actual_price, off_percentage_value, price,
+        category_id, brand_id, sku, actual_price, off_percentage_value, price, cost,
         en_title, ar_title, en_description, ar_description, attributes,
         delivery_charges, quantity, image_url, tabs_image_url,
         is_deal, is_hot_deal, vat_included, max_quantity_per_user, sold
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20) RETURNING *`,
-      [category_id, brand_id, sku, actual_price, off_percentage_value, price,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING *`,
+      [category_id, brand_id, sku, actual_price, off_percentage_value, price, cost,
        en_title, ar_title, en_description, ar_description, JSON.stringify(attributes),
        delivery_charges, quantity, mainImageUrl, JSON.stringify(tabImageUrls),
        is_deal, is_hot_deal, vat_included, max_quantity_per_user, sold]
@@ -107,13 +107,13 @@ exports.activateProduct = async (req, res) => {
 exports.editProduct = async (req, res) => {
   const { id } = req.params;
   const {
-    category_id, brand_id, actual_price, off_percentage_value, price,
+    category_id, brand_id, actual_price, off_percentage_value, price, cost,
     en_title, ar_title, en_description, ar_description, attributes,
     delivery_charges, quantity, is_deal, is_hot_deal, vat_included,
     max_quantity_per_user, sold, tabs_image_url
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
+  if (!category_id || !brand_id || !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -133,13 +133,13 @@ exports.editProduct = async (req, res) => {
     const result = await pool.query(
       `UPDATE products SET
         category_id = $1, brand_id = $2, actual_price = $3, off_percentage_value = $4,
-        price = $5, en_title = $6, ar_title = $7, en_description = $8, ar_description = $9,
-        attributes = $10, delivery_charges = $11, quantity = $12,
-        image_url = $13, tabs_image_url = $14,
-        is_deal = $15, is_hot_deal = $16, vat_included = $17, max_quantity_per_user = $18, sold = $19, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $20 RETURNING *`,
-      [category_id, brand_id, actual_price, off_percentage_value, price,
-       en_title, ar_title, en_description, ar_description, attributes,
+        price = $5, cost = $6, en_title = $7, ar_title = $8, en_description = $9, ar_description = $10,
+        attributes = $11, delivery_charges = $12, quantity = $13,
+        image_url = $14, tabs_image_url = $15,
+        is_deal = $16, is_hot_deal = $17, vat_included = $18, max_quantity_per_user = $19, sold = $20, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $21 RETURNING *`,
+      [category_id, brand_id, actual_price, off_percentage_value, price, cost,
+       en_title, ar_title, en_description, ar_description, JSON.stringify(attributes),
        delivery_charges, quantity, mainImageUrl, JSON.stringify(tabImageUrls),
        is_deal, is_hot_deal, vat_included, max_quantity_per_user, sold, id]
     );

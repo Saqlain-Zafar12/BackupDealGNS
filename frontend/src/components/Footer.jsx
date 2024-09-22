@@ -17,19 +17,19 @@ export default function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center">
                 <FaFacebook className="w-4 h-4 me-2" />
-                Jetronics.ae
+                dealsgns.ae
               </li>
               <li className="flex items-center">
                 <FaEnvelope className="w-4 h-4 me-2" />
-                Nayeem@jetronics.ae
+                meezan@dealsgns.ae
               </li>
               <li className="flex items-center">
                 <FaInstagram className="w-4 h-4 me-2" />
-                Jetronics.ae
+                dealsgns.ae
               </li>
               <li className="flex items-center">
                 <FaPhone className="w-4 h-4 me-2" />
-                <span className="ltr:inline-block" dir="ltr">+971 589989090</span>
+                <span className="ltr:inline-block" dir="ltr">+971 589632147</span>
               </li>
             </ul>
           </div>
@@ -74,7 +74,7 @@ export default function Footer() {
           <a href="#" className="hover:underline">{t('footer.legalEnquiryGuide')}</a>
         </div>
         <div className="mt-4 text-center text-sm">
-          © 2021 Jetronics, {t('footer.allRightsReserved')}
+          © 2021 dealsgns, {t('footer.allRightsReserved')}
         </div>
       </div>
     </footer>

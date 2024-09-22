@@ -75,10 +75,10 @@ export default function Carousel() {
   };
 
   return (
-    <div className="relative w-full h-[50vh] overflow-hidden bg-black">
+    <div className="relative w-full h-[20vh] sm:h-[50vh] overflow-hidden bg-black">
       <Slider {...settings}>
         {watches.map((watch) => (
-          <div key={watch.id} className="w-full h-[50vh]">
+          <div key={watch.id} className="w-full h-[30vh] sm:h-[50vh]">
             <img
               src={watch.src}
               alt={watch.alt}

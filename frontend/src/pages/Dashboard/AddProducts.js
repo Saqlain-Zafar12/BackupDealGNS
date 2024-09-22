@@ -165,6 +165,14 @@ const AddProduct = () => {
               <Form.Item name="ar_title" label="Arabic Title" rules={[{ required: true }]}>
                 <Input />
               </Form.Item>
+              <Form.Item name="cost" label="Cost" rules={[{ required: true }]}>
+                <InputNumber
+                  min={0}
+                  step={0.01}
+                  precision={2}
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
             </div>
             <Form.Item name="en_description" label="English Description" rules={[{ required: true }]}>
               <TextArea rows={4} onChange={(e) => handleEnglishInputChange(e, 'en_description')} />
