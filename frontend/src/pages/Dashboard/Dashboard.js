@@ -164,12 +164,15 @@ const Dashboard = () => {
           <Col xs={24} lg={12}>
             <Card title="Top Selling Products" hoverable style={{ height: '100%' }}>
               {dashboardStats?.topSellingProducts ? (
-                <Table 
-                  dataSource={dashboardStats.topSellingProducts}
-                  columns={topProductsColumns} 
-                  pagination={false}
-                  scroll={{ x: true, y: 240 }}
-                />
+                <div style={{ overflowX: 'auto' }}>
+                  <Table 
+                    dataSource={dashboardStats.topSellingProducts}
+                    columns={topProductsColumns} 
+                    pagination={false}
+                    scroll={{ y: 240 }}
+                    style={{ minWidth: '300px' }}
+                  />
+                </div>
               ) : (
                 <Alert message="No top selling products data available" type="info" />
               )}
@@ -181,12 +184,14 @@ const Dashboard = () => {
           <Col xs={24} lg={12}>
             <Card title="Low Stock Products" hoverable>
               {productStats?.lowStockProducts ? (
-                <Table 
-                  dataSource={productStats.lowStockProducts}
-                  columns={lowStockColumns} 
-                  pagination={false}
-                  scroll={{ x: true }}
-                />
+                <div style={{ overflowX: 'auto' }}>
+                  <Table 
+                    dataSource={productStats.lowStockProducts}
+                    columns={lowStockColumns} 
+                    pagination={false}
+                    style={{ minWidth: '300px' }}
+                  />
+                </div>
               ) : (
                 <Alert message="No low stock products data available" type="info" />
               )}

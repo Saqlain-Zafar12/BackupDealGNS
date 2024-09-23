@@ -86,15 +86,19 @@ const CategoryList = () => {
       title: 'English Name',
       dataIndex: 'en_category_name',
       key: 'en_category_name',
+      width: 150,
     },
     {
       title: 'Arabic Name',
       dataIndex: 'ar_category_name',
       key: 'ar_category_name',
+      width: 150,
     },
     {
       title: 'Actions',
       key: 'actions',
+      fixed: 'right',
+      width: 120,
       render: (_, record) => (
         <Space size="middle">
           <Button 
@@ -124,12 +128,20 @@ const CategoryList = () => {
         </Button>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={categories} 
-        rowKey="id"
-        loading={loading}
-      />
+      <div style={{ overflowX: 'auto' }}>
+        <Table 
+          columns={columns} 
+          dataSource={categories} 
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            responsive: true,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+        />
+      </div>
 
       <Modal
         title={editingCategory ? "Edit Category" : "Add Category"}

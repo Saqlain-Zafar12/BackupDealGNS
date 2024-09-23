@@ -85,21 +85,26 @@ const BrandList = () => {
       title: 'English Name',
       dataIndex: 'en_brand_name',
       key: 'en_brand_name',
+      width: 150,
     },
     {
       title: 'Arabic Name',
       dataIndex: 'ar_brand_name',
       key: 'ar_brand_name',
+      width: 150,
     },
     {
       title: 'Category',
       dataIndex: 'category_id',
       key: 'category_id',
+      width: 150,
       render: (category_id) => categories.find(cat => cat.id === category_id)?.en_category_name || 'Unknown',
     },
     {
       title: 'Actions',
       key: 'actions',
+      fixed: 'right',
+      width: 120,
       render: (_, record) => (
         <Space size="middle">
           <Button 
@@ -129,12 +134,20 @@ const BrandList = () => {
         </Button>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={brands} 
-        rowKey="id"
-        loading={isLoading}
-      />
+      <div style={{ overflowX: 'auto' }}>
+        <Table 
+          columns={columns} 
+          dataSource={brands} 
+          rowKey="id"
+          loading={isLoading}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            responsive: true,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+        />
+      </div>
 
       <Modal
         title={editingBrand ? "Edit Brand" : "Add Brand"}

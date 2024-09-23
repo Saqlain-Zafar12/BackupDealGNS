@@ -53,34 +53,47 @@ const OrderList = () => {
       title: 'Order ID',
       dataIndex: 'id',
       key: 'id',
+      width: 100,
+    },
+    {
+      title: 'User ID',
+      dataIndex: 'web_user_id',
+      key: 'web_user_id',
+      width: 100,
     },
     {
       title: 'Customer',
       dataIndex: 'full_name',
       key: 'full_name',
+      width: 150,
       ellipsis: true,
     },
     {
       title: 'Total',
       dataIndex: 'quantity',
       key: 'quantity',
+      width: 80,
       render: (quantity) => (quantity ? quantity : 'N/A'),
     },
     {
       title: 'Items',
       dataIndex: 'product_id',
       key: 'product_id',
+      width: 80,
       render: (product_id) => (product_id ? product_id : 'N/A'),
     },
     {
       title: 'Date',
       dataIndex: 'created_at',
       key: 'created_at',
+      width: 120,
       render: (created_at) => (created_at ? new Date(created_at).toLocaleDateString() : 'N/A'),
     },
     {
       title: 'Actions',
       key: 'actions',
+      fixed: 'right',
+      width: 150,
       render: (_, record) => (
         <div className="flex space-x-2">
           <Button
@@ -106,14 +119,18 @@ const OrderList = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Pending Order List</h2>
-      <div className="overflow-x-auto">
+      <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
           dataSource={pendingOrders} 
           rowKey="id"
-          pagination={{ pageSize: 10 }}
-          className="min-w-full"
-          scroll={{ x: true }}
+          pagination={{
+            pageSize: 10,
+            responsive: true,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+          scroll={{ x: 'max-content' }}
           loading={isLoading}
         />
       </div>

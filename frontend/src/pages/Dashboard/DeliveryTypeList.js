@@ -67,10 +67,13 @@ const DeliveryTypeList = () => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      width: 200,
     },
     {
       title: 'Actions',
       key: 'actions',
+      fixed: 'right',
+      width: 120,
       render: (_, record) => (
         <Space size="middle">
           <Button 
@@ -100,12 +103,20 @@ const DeliveryTypeList = () => {
         </Button>
       </div>
 
-      <Table 
-        columns={columns} 
-        dataSource={deliveryTypes} 
-        rowKey="id"
-        loading={loading}
-      />
+      <div style={{ overflowX: 'auto' }}>
+        <Table 
+          columns={columns} 
+          dataSource={deliveryTypes} 
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            responsive: true,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+        />
+      </div>
 
       <Modal
         title={editingDeliveryType ? "Edit Delivery Type" : "Add Delivery Type"}

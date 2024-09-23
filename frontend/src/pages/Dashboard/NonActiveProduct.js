@@ -29,26 +29,32 @@ const NonActiveProduct = () => {
       title: 'English Name',
       dataIndex: 'en_title',
       key: 'en_title',
+      width: 150,
     },
     {
       title: 'Arabic Name',
       dataIndex: 'ar_title',
       key: 'ar_title',
+      width: 150,
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
+      width: 100,
       render: (price) => `$${parseFloat(price).toFixed(2)}`,
     },
     {
       title: 'Stock',
       dataIndex: 'quantity',
       key: 'quantity',
+      width: 80,
     },
     {
       title: 'Actions',
       key: 'actions',
+      fixed: 'right',
+      width: 100,
       render: (_, record) => (
         <Button 
           icon={<RedoOutlined />} 
@@ -62,12 +68,20 @@ const NonActiveProduct = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Non-Active Products</h2>
-      <Table 
-        columns={columns} 
-        dataSource={nonActiveProducts} 
-        rowKey="id" 
-        loading={isLoading}
-      />
+      <div style={{ overflowX: 'auto' }}>
+        <Table 
+          columns={columns} 
+          dataSource={nonActiveProducts} 
+          rowKey="id" 
+          loading={isLoading}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            responsive: true,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+        />
+      </div>
     </div>
   );
 };

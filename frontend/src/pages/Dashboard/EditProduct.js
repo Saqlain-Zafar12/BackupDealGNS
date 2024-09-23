@@ -24,7 +24,6 @@ const EditProduct = () => {
   const [mainImageFile, setMainImageFile] = useState([]);
   const [tabImageFiles, setTabImageFiles] = useState([]);
 
-  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
   const [productMainImage, setProductMainImage] = useState(null);
   useEffect(() => {
     const fetchProduct = async () => {
@@ -156,10 +155,10 @@ const EditProduct = () => {
       max_quantity_per_user: parseInt(values.max_quantity_per_user),
       sold: parseInt(values.sold),
       attributes: formattedAttributes,
-      mainImage: mainImageFile.length > 0 ? (mainImageFile[0].originFileObj || mainImageFile[0].url || mainImageFile[0]) : productMainImage,
+      mainImage: mainImageFile.length > 0 ? (mainImageFile[0].originFileObj || mainImageFile[0]) : productMainImage,
       image_url: productMainImage,
-      tabImages: tabImageFiles.map(file => file.originFileObj || file.url),
-      tabs_image_url: tabImageFiles.map(file => file.url || file.name),
+      tabImages: tabImageFiles.map(file => file.originFileObj || file),
+      tabs_image_url: tabImageFiles.filter(file => !file.originFileObj).map(file => file.url?.replace(`${backendUrl}/`, '') || file),
       is_deal: values.is_deal || false,
       is_hot_deal: values.is_hot_deal || false,
       vat_included: values.vat_included === undefined ? true : values.vat_included
@@ -181,6 +180,8 @@ const EditProduct = () => {
   const handleTabImagesUpload = ({ fileList }) => {
     setTabImageFiles(fileList);
   };
+
+  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

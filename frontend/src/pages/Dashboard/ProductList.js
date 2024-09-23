@@ -41,31 +41,38 @@ const ProductList = () => {
       title: 'English Name',
       dataIndex: 'en_title',
       key: 'en_title',
+      width: 150,
     },
     {
       title: 'Arabic Name',
       dataIndex: 'ar_title',
       key: 'ar_title',
+      width: 150,
     },
     {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
+      width: 100,
       render: (price) => `$${parseFloat(price).toFixed(2)}`,
     },
     {
       title: 'Stock',
       dataIndex: 'quantity',
       key: 'quantity',
+      width: 80,
     },
     {
       title: 'Max Quantity Per User',
       dataIndex: 'max_quantity_per_user',
       key: 'max_quantity_per_user',
+      width: 150,
     },
     {
       title: 'Actions',
       key: 'actions',
+      fixed: 'right',
+      width: 150,
       render: (_, record) => (
         <Space size="middle">
           <Link to={`/dashboard/edit-product/${record.id}`}>
@@ -76,7 +83,6 @@ const ProductList = () => {
         </Space>
       ),
     },
-   
   ];
 
   const handleCloseModal = () => {
@@ -86,12 +92,20 @@ const ProductList = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Product List</h2>
-      <Table 
-        columns={columns} 
-        dataSource={products} 
-        rowKey="id" 
-        loading={isLoading}
-      />
+      <div style={{ overflowX: 'auto' }}>
+        <Table 
+          columns={columns} 
+          dataSource={products} 
+          rowKey="id" 
+          loading={isLoading}
+          scroll={{ x: 'max-content' }}
+          pagination={{
+            responsive: true,
+            showSizeChanger: true,
+            showQuickJumper: true,
+          }}
+        />
+      </div>
       <Modal
         title="Product Details"
         visible={!!selectedProduct}
