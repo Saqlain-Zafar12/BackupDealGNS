@@ -43,7 +43,7 @@ const ProductCard = ({ product }) => {
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {parseFloat(product.discount) > 0 && (
                 <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
-                  <FaTag className="mr-1" /> {product.discount}% {t('product.off')}
+                  <FaTag className="mr-1" /> {parseInt(product.discount)}% {t('product.off')}
                 </div>
               )}
               {isDeliveryFree(product.delivery_charges) && (

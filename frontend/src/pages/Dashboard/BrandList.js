@@ -13,6 +13,7 @@ const BrandList = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
   const [form] = Form.useForm();
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (isLoading) {
@@ -80,6 +81,11 @@ const BrandList = () => {
     }
   };
 
+  const filteredBrands = brands.filter(brand => 
+    brand.en_brand_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    brand.ar_brand_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const columns = [
     {
       title: 'English Name',
@@ -134,10 +140,17 @@ const BrandList = () => {
         </Button>
       </div>
 
+      <Input 
+        placeholder="Search by name" 
+        value={searchQuery} 
+        onChange={(e) => setSearchQuery(e.target.value)} 
+        style={{ marginBottom: 16, width: 300 }}
+      />
+
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={brands} 
+          dataSource={filteredBrands} 
           rowKey="id"
           loading={isLoading}
           scroll={{ x: 'max-content' }}

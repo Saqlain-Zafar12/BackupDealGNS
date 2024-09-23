@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Space, Modal, message, Select } from 'antd';
-import { EyeOutlined, CarOutlined } from '@ant-design/icons';
+import { Table, Button, Space, Modal, message, Select, Input } from 'antd';
+import { EyeOutlined, CarOutlined, FileExcelOutlined } from '@ant-design/icons';
 import { useOrder } from '../../context/OrderContext';
 import { useDeliveryType } from '../../context/deliveryTypeContext';
+import * as XLSX from 'xlsx';
 
 const { Option } = Select;
+const { Search } = Input;
 
 const ConfirmOrderList = () => {
   const { confirmedOrders, isLoading, fetchConfirmedOrders, getOrderDetails, deliverOrder, assignDeliveryType } = useOrder();
   const { deliveryTypes, fetchDeliveryTypes } = useDeliveryType();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchConfirmedOrders();
@@ -54,6 +57,28 @@ const ConfirmOrderList = () => {
       message.error('Failed to assign delivery type');
     }
   };
+
+  const handleExportToExcel = () => {
+    const data = confirmedOrders.map(order => ({
+      'Order ID': order.id,
+      'User ID': order.web_user_id,
+      'Customer': order.full_name,
+      'Quantity': order.quantity || 'N/A',
+      'Product ID': order.product_id || 'N/A',
+      'Date': order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A',
+      'Delivery Type': order.delivery_type_name || 'Not assigned',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Confirmed Orders');
+    XLSX.writeFile(workbook, 'ConfirmedOrders.xlsx');
+  };
+
+  const filteredOrders = confirmedOrders.filter(order => 
+    order.web_user_id.toString().includes(searchQuery) || 
+    order.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const columns = [
     {
@@ -134,10 +159,24 @@ const ConfirmOrderList = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Confirmed Order List</h2>
+      <Search 
+        placeholder="Search by User ID or Customer Name"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ marginBottom: 16, width: 300 }}
+      />
+      <Button 
+        type="primary" 
+        icon={<FileExcelOutlined />} 
+        onClick={handleExportToExcel}
+        style={{ marginBottom: 16 }}
+      >
+        Export to Excel
+      </Button>
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={confirmedOrders} 
+          dataSource={filteredOrders} 
           rowKey="id" 
           loading={isLoading}
           scroll={{ x: 'max-content' }}

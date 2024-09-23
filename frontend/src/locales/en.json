@@ -11,13 +11,15 @@
     "productList": {
       "allProducts": "All Products",
       "recommendedProducts": "Recommended Products",
-      "searchResults": "Search Results"
+      "searchResults": "Search Results",
+      "noProductsAvailable": "No Products Available"
     },
     "superDeals": {
       "title": "Super Deals",
       "hotDeal": "HOT DEAL",
       "sold": "sold",
-      "viewDeal": "Order Now"
+      "viewDeal": "Order Now",
+      "noDealsAvailable": "No Deals Available"
     },
     "product": {
       "freeDelivery": "Free Delivery",

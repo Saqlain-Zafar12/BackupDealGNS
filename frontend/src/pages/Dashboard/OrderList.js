@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { FiEye, FiCheckCircle, FiX } from 'react-icons/fi';
-import { Modal, Button, Table, message } from 'antd';
+import { Modal, Button, Table, message, Input } from 'antd';
 import { useOrder } from '../../context/OrderContext';
+import * as XLSX from 'xlsx';
+
+const { Search } = Input;
 
 const OrderList = () => {
   const { pendingOrders, isLoading, fetchPendingOrders, confirmOrder, cancelOrder, getOrderDetails } = useOrder();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchPendingOrders();
@@ -47,6 +51,18 @@ const OrderList = () => {
       message.error('Failed to cancel order');
     }
   };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(pendingOrders);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Orders");
+    XLSX.writeFile(workbook, "orders.xlsx");
+  };
+
+  const filteredOrders = pendingOrders.filter(order => 
+    order.web_user_id.toString().includes(searchQuery) || 
+    order.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const columns = [
     {
@@ -119,10 +135,19 @@ const OrderList = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-semibold mb-4">Pending Order List</h2>
+      <div className="flex justify-between items-center mb-4">
+        <Search 
+          placeholder="Search by User ID or Customer Name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ marginBottom: 16, width: 300 }}
+        />
+        <Button type="primary" onClick={exportToExcel}>Export Orders</Button>
+      </div>
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={pendingOrders} 
+          dataSource={filteredOrders} 
           rowKey="id"
           pagination={{
             pageSize: 10,

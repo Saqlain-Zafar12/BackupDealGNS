@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
-import { Table, Button, Space, message, Modal, Image } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Table, Button, Space, message, Modal, Image, Input } from 'antd';
 import { EditOutlined, EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
+
+const { Search } = Input;
 
 const ProductList = () => {
   const { 
@@ -15,10 +18,14 @@ const ProductList = () => {
     fetchProducts 
   } = useProduct();
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
   const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
+
   const handleDeactivate = async (id) => {
     try {
       await deleteProduct(id);
@@ -35,6 +42,19 @@ const ProductList = () => {
       message.error('Failed to fetch product details');
     }
   };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(products);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+    XLSX.writeFile(workbook, 'Products.xlsx');
+  };
+
+  const filteredProducts = products.filter(product => 
+    product.en_title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    product.ar_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.id.toString().includes(searchQuery)
+  );
 
   const columns = [
     {
@@ -54,7 +74,7 @@ const ProductList = () => {
       dataIndex: 'price',
       key: 'price',
       width: 100,
-      render: (price) => `$${parseFloat(price).toFixed(2)}`,
+      render: (price) => `${parseFloat(price).toFixed(2)}`,
     },
     {
       title: 'Stock',
@@ -92,10 +112,19 @@ const ProductList = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Product List</h2>
+      <div className="flex justify-between items-center mb-4">
+        <Search 
+          placeholder="Search Products"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          style={{ marginBottom: 16, width: 300 }}
+        />
+        <Button type="primary" onClick={exportToExcel}>Export Products</Button>
+      </div>
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={products} 
+          dataSource={filteredProducts} 
           rowKey="id" 
           loading={isLoading}
           scroll={{ x: 'max-content' }}

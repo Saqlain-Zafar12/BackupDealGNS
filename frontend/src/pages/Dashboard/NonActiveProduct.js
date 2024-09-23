@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, message } from 'antd';
+import { Table, Button, message, Input } from 'antd';
 import { RedoOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
+import * as XLSX from 'xlsx';
+
+const { Search } = Input;
 
 const NonActiveProduct = () => {
   const { nonActiveProducts, reactivateProduct, isLoading, fetchProducts } = useProduct();
   const [reactivatingId, setReactivatingId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchProducts();
@@ -23,6 +27,25 @@ const NonActiveProduct = () => {
       setReactivatingId(null);
     }
   };
+
+  const handleExport = () => {
+    const data = nonActiveProducts.map(product => ({
+      'English Name': product.en_title,
+      'Arabic Name': product.ar_title,
+      'Price': product.price,
+      'Stock': product.quantity,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'NonActiveProducts');
+    XLSX.writeFile(workbook, 'NonActiveProducts.xlsx');
+  };
+
+  const filteredProducts = nonActiveProducts.filter(product => 
+    product.en_title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    product.ar_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.id.toString().includes(searchQuery)
+  );
 
   const columns = [
     {
@@ -42,7 +65,7 @@ const NonActiveProduct = () => {
       dataIndex: 'price',
       key: 'price',
       width: 100,
-      render: (price) => `$${parseFloat(price).toFixed(2)}`,
+      render: (price) => `${parseFloat(price).toFixed(2)}`,
     },
     {
       title: 'Stock',
@@ -68,10 +91,19 @@ const NonActiveProduct = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Non-Active Products</h2>
+      <Search 
+        placeholder="Search Products"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ marginBottom: 16, width: 300 }}
+      />
+      <Button onClick={handleExport} style={{ marginBottom: 16 }}>
+        Export to Excel
+      </Button>
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={nonActiveProducts} 
+          dataSource={filteredProducts} 
           rowKey="id" 
           loading={isLoading}
           scroll={{ x: 'max-content' }}

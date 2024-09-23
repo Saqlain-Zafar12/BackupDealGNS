@@ -4,10 +4,13 @@ import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import { useAttribute } from '../../context/AttributesContext';
 import translate from 'translate';
 
+const { Search } = Input;
+
 const AttributeManagement = () => {
   const { attributes, addAttribute, updateAttribute, deleteAttribute, isLoading } = useAttribute();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [form] = Form.useForm();
 
   const showModal = (attribute = null) => {
@@ -70,6 +73,11 @@ const AttributeManagement = () => {
     }
   };
 
+  const filteredAttributes = attributes.filter(attribute => 
+    attribute.en_attribute_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    attribute.ar_attribute_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const columns = [
     {
       title: 'English Name',
@@ -117,10 +125,17 @@ const AttributeManagement = () => {
         </Button>
       </div>
 
+      <Search 
+        placeholder="Search Attributes"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ marginBottom: 16, width: 300 }}
+      />
+
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={attributes} 
+          dataSource={filteredAttributes} 
           rowKey="id"
           loading={isLoading}
           scroll={{ x: 'max-content' }}

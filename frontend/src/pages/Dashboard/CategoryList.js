@@ -10,6 +10,7 @@ const CategoryList = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -81,6 +82,11 @@ const CategoryList = () => {
     }
   };
 
+  const filteredCategories = categories.filter(category => 
+    category.en_category_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    category.ar_category_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const columns = [
     {
       title: 'English Name',
@@ -128,10 +134,17 @@ const CategoryList = () => {
         </Button>
       </div>
 
+      <Input 
+        placeholder="Search by name" 
+        value={searchQuery} 
+        onChange={(e) => setSearchQuery(e.target.value)} 
+        style={{ marginBottom: 16, width: 300 }}
+      />
+
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={categories} 
+          dataSource={filteredCategories} 
           rowKey="id"
           loading={loading}
           scroll={{ x: 'max-content' }}

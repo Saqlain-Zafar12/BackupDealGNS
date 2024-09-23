@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, message } from 'antd';
+import { Table, Button, Modal, message, Input, Space } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useOrder } from '../../context/OrderContext';
+import * as XLSX from 'xlsx';
 
 const CancelledOrderList = () => {
   const { cancelledOrders, isLoading, fetchCancelledOrders, getOrderDetails } = useOrder();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchUserId, setSearchUserId] = useState('');
+  const [searchCustomerName, setSearchCustomerName] = useState('');
+  const [filteredOrders, setFilteredOrders] = useState([]);
 
   useEffect(() => {
     fetchCancelledOrders();
   }, [fetchCancelledOrders]);
+
+  useEffect(() => {
+    setFilteredOrders(cancelledOrders);
+  }, [cancelledOrders]);
 
   const showModal = async (orderId) => {
     try {
@@ -28,6 +36,21 @@ const CancelledOrderList = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
+  };
+
+  const handleSearch = () => {
+    const filtered = cancelledOrders.filter(order => 
+      (searchUserId ? order.web_user_id.includes(searchUserId) : true) &&
+      (searchCustomerName ? order.full_name.toLowerCase().includes(searchCustomerName.toLowerCase()) : true)
+    );
+    setFilteredOrders(filtered);
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(filteredOrders);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Cancelled Orders');
+    XLSX.writeFile(workbook, 'CancelledOrders.xlsx');
   };
 
   const columns = [
@@ -85,10 +108,30 @@ const CancelledOrderList = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Cancelled Order List</h2>
+      <Space style={{ marginBottom: 16 }}>
+        <Input
+          placeholder="Search User ID"
+          value={searchUserId}
+          onChange={(e) => setSearchUserId(e.target.value)}
+          onPressEnter={handleSearch}
+        />
+        <Input
+          placeholder="Search Customer Name"
+          value={searchCustomerName}
+          onChange={(e) => setSearchCustomerName(e.target.value)}
+          onPressEnter={handleSearch}
+        />
+        <Button type="primary" onClick={handleSearch}>
+          Search
+        </Button>
+        <Button type="primary" onClick={exportToExcel}>
+          Export Orders
+        </Button>
+      </Space>
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={cancelledOrders} 
+          dataSource={filteredOrders} 
           rowKey="id" 
           loading={isLoading}
           scroll={{ x: 'max-content' }}

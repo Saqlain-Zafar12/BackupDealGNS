@@ -174,7 +174,7 @@ const PlaceOrder = () => {
                     </Col>
                     <Col>
                       <Text className="flex items-center">
-                        <FaPercent className="mr-1" /> {productData.discount} {t('product.off')}
+                        <FaPercent className="mr-1" /> {parseInt(productData.discount)} {t('product.off')}
                       </Text>
                     </Col>
                   </Row>

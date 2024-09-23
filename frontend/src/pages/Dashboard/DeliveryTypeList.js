@@ -9,6 +9,7 @@ const DeliveryTypeList = () => {
   const [editingDeliveryType, setEditingDeliveryType] = useState(null);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const loadDeliveryTypes = async () => {
@@ -62,6 +63,10 @@ const DeliveryTypeList = () => {
     });
   };
 
+  const filteredDeliveryTypes = deliveryTypes.filter(deliveryType => 
+    deliveryType.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const columns = [
     {
       title: 'Name',
@@ -103,10 +108,17 @@ const DeliveryTypeList = () => {
         </Button>
       </div>
 
+      <Input 
+        placeholder="Search by name" 
+        value={searchQuery} 
+        onChange={(e) => setSearchQuery(e.target.value)} 
+        style={{ marginBottom: 16, width: 300 }}
+      />
+
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={deliveryTypes} 
+          dataSource={filteredDeliveryTypes} 
           rowKey="id"
           loading={loading}
           scroll={{ x: 'max-content' }}

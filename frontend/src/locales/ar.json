@@ -11,13 +11,15 @@
     "productList": {
       "allProducts": "جميع المنتجات",
       "recommendedProducts": "المنتجات الموصى بها",
-      "searchResults": "نتائج البحث"
+      "searchResults": "نتائج البحث",
+      "noProductsAvailable": "لا توجد منتجات متاحة"
     },
     "superDeals": {
       "title": "عروض مميزة",
       "hotDeal": "صفقة ساخنة",
       "sold": "تم البيع",
-      "viewDeal": "اطلب الآن"
+      "viewDeal": "اطلب الآن",
+      "noDealsAvailable": "لا توجد عروض متاحة"
     },
     "product": {
       "freeDelivery": "توصيل مجاني",

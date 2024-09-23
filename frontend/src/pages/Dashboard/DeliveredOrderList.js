@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, Modal, message } from 'antd';
+import { Table, Button, Modal, message, Input } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useOrder } from '../../context/OrderContext';
+import * as XLSX from 'xlsx';
+
+const { Search } = Input;
 
 const DeliveredOrderList = () => {
   const { deliveredOrders, isLoading, fetchDeliveredOrders, getOrderDetails } = useOrder();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchDeliveredOrders();
@@ -29,6 +33,18 @@ const DeliveredOrderList = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
   };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(deliveredOrders);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Delivered Orders');
+    XLSX.writeFile(workbook, 'DeliveredOrders.xlsx');
+  };
+
+  const filteredOrders = deliveredOrders.filter(order => 
+    order.web_user_id.toString().includes(searchQuery) || 
+    order.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const columns = [
     {
@@ -85,10 +101,17 @@ const DeliveredOrderList = () => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Delivered Order List</h2>
+      <Search 
+        placeholder="Search by User ID or Customer Name"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{ marginBottom: 16, width: 300 }}
+      />
+      <Button onClick={exportToExcel} style={{ marginBottom: 16 }}>Export to Excel</Button>
       <div style={{ overflowX: 'auto' }}>
         <Table 
           columns={columns} 
-          dataSource={deliveredOrders} 
+          dataSource={filteredOrders} 
           rowKey="id" 
           loading={isLoading}
           scroll={{ x: 'max-content' }}
