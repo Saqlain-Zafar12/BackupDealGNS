@@ -1,3 +1,13 @@
+-- Drop tables if they exist (in reverse order of creation to avoid foreign key conflicts)
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS attributes;
+DROP TABLE IF EXISTS brands;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS delivery_types;
+
+-- Create tables
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -61,6 +71,13 @@ CREATE TABLE products (
   cost NUMERIC(10, 2) NOT NULL
 );
 
+CREATE TABLE delivery_types (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE orders (
   id SERIAL PRIMARY KEY,
   web_user_id VARCHAR(255) NOT NULL,
@@ -72,16 +89,9 @@ CREATE TABLE orders (
   product_id INTEGER NOT NULL,
   selected_attributes TEXT[] NOT NULL,
   order_type VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (order_type IN ('pending', 'confirmed', 'delivered', 'cancelled')),
-  delivery_type_name VARCHAR(255) NOT NULL ,
+  delivery_type_name VARCHAR(255) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES products(id),
   FOREIGN KEY (delivery_type_name) REFERENCES delivery_types(name)
-);
-
-CREATE TABLE delivery_types (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(255) NOT NULL UNIQUE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
