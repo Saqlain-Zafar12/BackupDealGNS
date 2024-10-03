@@ -28,8 +28,24 @@ exports.addProduct = async (req, res) => {
 
   try {
     const sku = await generateUniqueSKU();
-    const mainImageUrl = req.files['mainImage'] ? req.files['mainImage'][0].path : null;
-    const tabImageUrls = req.files['tabImages'] ? req.files['tabImages'].map(file => file.path) : [];
+    
+    console.log('Received files:', req.files);
+    console.log('Received body:', req.body);
+
+    // Handle main image
+    let mainImageUrl = null;
+    if (req.files && req.files['mainImage'] && req.files['mainImage'][0]) {
+      mainImageUrl = req.files['mainImage'][0].path;
+    }
+
+    // Handle tab images
+    let tabImageUrls = [];
+    if (req.files && req.files['tabImages']) {
+      tabImageUrls = req.files['tabImages'].map(file => file.path);
+    }
+
+    console.log('Main Image URL:', mainImageUrl);
+    console.log('Tab Image URLs:', tabImageUrls);
 
     const result = await pool.query(
       `INSERT INTO products (
@@ -118,17 +134,31 @@ exports.editProduct = async (req, res) => {
   }
 
   try {
-    const mainImageUrl = req.files['mainImage'] ? req.files['mainImage'][0].path : req.body.image_url;
+    console.log('Received files:', req.files);
+    console.log('Received body:', req.body);
+
+    const mainImageUrl = req.files && req.files['mainImage'] ? req.files['mainImage'][0].path : req.body.image_url;
     
     // Handle tab images
     let tabImageUrls = [];
     if (tabs_image_url) {
-      tabImageUrls = JSON.parse(tabs_image_url);
+      try {
+        tabImageUrls = JSON.parse(tabs_image_url);
+      } catch (error) {
+        console.error('Error parsing tabs_image_url:', error);
+        tabImageUrls = [tabs_image_url];
+      }
     }
-    if (req.files['tabImages']) {
+    if (req.files && req.files['tabImages']) {
       const newTabImages = req.files['tabImages'].map(file => file.path);
       tabImageUrls = [...tabImageUrls, ...newTabImages];
     }
+
+    // Remove duplicates
+    tabImageUrls = [...new Set(tabImageUrls)];
+
+    console.log('Main Image URL:', mainImageUrl);
+    console.log('Tab Image URLs:', tabImageUrls);
 
     const result = await pool.query(
       `UPDATE products SET

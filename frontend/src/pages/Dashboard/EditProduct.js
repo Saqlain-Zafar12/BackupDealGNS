@@ -23,6 +23,7 @@ const EditProduct = () => {
   const [loading, setLoading] = useState(false);
   const [mainImageFile, setMainImageFile] = useState([]);
   const [tabImageFiles, setTabImageFiles] = useState([]);
+  const [removedTabImages, setRemovedTabImages] = useState([]);
 
   const [productMainImage, setProductMainImage] = useState(null);
   useEffect(() => {
@@ -70,7 +71,8 @@ const EditProduct = () => {
             uid: `-${index}`,
             name: url.split('\\').pop(),
             status: 'done',
-            url: `${backendUrl}/${url}`
+            url: `${backendUrl}/${url}`,
+            isExisting: true // Add this flag to identify existing images
           })));
         }
       } catch (error) {
@@ -157,8 +159,11 @@ const EditProduct = () => {
       attributes: formattedAttributes,
       mainImage: mainImageFile.length > 0 ? (mainImageFile[0].originFileObj || mainImageFile[0]) : productMainImage,
       image_url: productMainImage,
-      tabImages: tabImageFiles.map(file => file.originFileObj || file),
-      tabs_image_url: tabImageFiles.filter(file => !file.originFileObj).map(file => file.url?.replace(`${backendUrl}/`, '') || file),
+      tabImages: tabImageFiles.filter(file => !file.isExisting).map(file => file.originFileObj),
+      tabs_image_url: tabImageFiles
+        .filter(file => file.isExisting)
+        .map(file => file.url?.replace(`${backendUrl}/`, '') || file.name),
+      removedTabImages: removedTabImages,
       is_deal: values.is_deal || false,
       is_hot_deal: values.is_hot_deal || false,
       vat_included: values.vat_included === undefined ? true : values.vat_included
@@ -178,7 +183,18 @@ const EditProduct = () => {
   };
 
   const handleTabImagesUpload = ({ fileList }) => {
-    setTabImageFiles(fileList);
+    // Filter out files that are being removed
+    const newFiles = fileList.filter(file => file.status !== 'removed');
+    
+    // Identify removed existing images
+    const removedExisting = tabImageFiles.filter(
+      oldFile => oldFile.isExisting && !newFiles.some(newFile => newFile.uid === oldFile.uid)
+    );
+    
+    setRemovedTabImages(prev => [...prev, ...removedExisting.map(file => file.name)]);
+
+    // Update tabImageFiles with new state
+    setTabImageFiles(newFiles);
   };
 
   const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');

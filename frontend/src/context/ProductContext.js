@@ -68,17 +68,25 @@ export const ProductProvider = ({ children }) => {
 
   const createFormData = (productData) => {
     const formData = new FormData();
+
     Object.keys(productData).forEach(key => {
-      if (key === 'attributes' || key === 'tabs_image_url') {
-        formData.append(key, JSON.stringify(productData[key])); // Stringify the attributes and tabs_image_url
+      if (key === 'attributes') {
+        formData.append(key, JSON.stringify(productData[key]));
       } else if (key === 'mainImage' && productData[key]) {
         formData.append('mainImage', productData[key]);
       } else if (key === 'tabImages' && productData[key] && productData[key].length > 0) {
-        productData[key].forEach(file => formData.append('tabImages', file));
+        productData[key].forEach((file, index) => {
+          if (file instanceof File) {
+            formData.append(`tabImages`, file);
+          }
+        });
+      } else if (key === 'tabs_image_url' && productData[key] && productData[key].length > 0) {
+        formData.append('tabs_image_url', JSON.stringify(productData[key]));
       } else {
         formData.append(key, productData[key]);
       }
     });
+
     return formData;
   };
 
