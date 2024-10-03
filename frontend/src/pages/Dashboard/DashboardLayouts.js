@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext'; // Add this import
 import {
-  HomeOutlined,
+  HomeOutlined, 
   UnorderedListOutlined,
   PlusOutlined,
   TagsOutlined,

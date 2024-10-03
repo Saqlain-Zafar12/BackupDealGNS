@@ -26,7 +26,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchAllData();
-  }, [fetchAllData]);
+  }, [fetchAllData]); 
 
   if (loading) return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />;
   if (error) return <Alert message={error} type="error" style={{ margin: '24px' }} />;
