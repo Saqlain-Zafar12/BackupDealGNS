@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
+import { useAuth } from '../../context/AuthContext'; // Add this import
 import {
   HomeOutlined,
   UnorderedListOutlined,
@@ -19,6 +20,8 @@ const DashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth(); // Add this line to use the logout function
 
   const toggle = () => {
     setCollapsed(!collapsed);
@@ -42,6 +45,11 @@ const DashboardLayout = () => {
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const NavLink = ({ to, icon, children }) => (
     <Link to={to} className="flex items-center px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors duration-200">
@@ -84,16 +92,31 @@ const DashboardLayout = () => {
           <NavLink to="/dashboard/categories" icon={<AppstoreOutlined className="mr-3 text-green-600" />}>Categories</NavLink>
           <NavLink to="/dashboard/brands" icon={<TrademarkOutlined className="mr-3 text-green-600" />}>Brands</NavLink>
           <NavLink to="/dashboard/delivery-types" icon={<CarOutlined className="mr-3 text-green-600" />}>Delivery Types</NavLink>
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors duration-200"
+          >
+            <FiLogOut className="mr-3 text-green-600" />
+            {(!collapsed || mobileMenuOpen) && <span className="ml-3">Logout</span>}
+          </button>
         </nav>
       </aside>
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-green-100 shadow-md p-4 flex justify-between items-center"> {/* Light green header */}
           <h2 className="text-xl font-semibold text-green-800">Dashboard</h2>
-          <button onClick={toggleMobileMenu} className="p-2 rounded-full hover:bg-green-200 transition-colors duration-200 md:hidden">
-            <FiMenu className="text-green-800" />
-          </button>
+          <div className="flex items-center">
+            <button
+              onClick={handleLogout}
+              className="mr-4 p-2 rounded-full hover:bg-green-200 transition-colors duration-200"
+            >
+              <FiLogOut className="text-green-800" />
+            </button>
+            <button onClick={toggleMobileMenu} className="p-2 rounded-full hover:bg-green-200 transition-colors duration-200 md:hidden">
+              <FiMenu className="text-green-800" />
+            </button>
+          </div>
         </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-green-50 p-6 scrollbar-thin scrollbar-thumb-green-200 scrollbar-track-green-100" style={{ maxHeight: '90vh' }}> {/* Light green main content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-green-50 p-6 scrollbar-thin scrollbar-thumb-green-200 scrollbar-track-green-100" style={{ maxHeight: '90vh' }} > {/* Light green main content */}
           <Outlet />
         </main>
       </div>
