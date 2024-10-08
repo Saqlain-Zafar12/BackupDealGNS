@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CategoryProvider } from './context/CategoryContext';
 import { BrandProvider } from './context/BrandContext'; // Import BrandProvider
 import { DeliveryTypeProvider } from './context/deliveryTypeContext'; // Import DeliveryTypeProvider
+import { DashboardProvider } from './context/dashboardContext'; // Import DashboardProvider
 import Cookies from 'js-cookie';
 import { v4 as uuidv4 } from 'uuid';
 import Footer from "./components/Footer";
@@ -28,6 +29,7 @@ import { GlobalProvider } from './context/GlobalContext';
 import Dashboard from './pages/Dashboard/Dashboard';
 import UserOrders from './components/UserOrders';
 import DeliveryTypeList from './pages/Dashboard/DeliveryTypeList'; // Import DeliveryTypeList
+import WhatsAppButton from "./components/WhatsAppButton"; // Import the WhatsAppButton component
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -64,6 +66,7 @@ function AppContent() {
           <Navbar />
           <Store />
           <Footer />
+          <WhatsAppButton /> {/* Add WhatsAppButton here */}
         </>
       } />
 
@@ -72,6 +75,7 @@ function AppContent() {
           <Navbar />
           <PlaceOrder />
           <Footer />
+          <WhatsAppButton /> {/* Add WhatsAppButton here */}
         </>
       } />
 
@@ -80,6 +84,7 @@ function AppContent() {
           <Navbar />
           <OrderConfirmation />
           <Footer />
+          <WhatsAppButton /> {/* Add WhatsAppButton here */}
         </>
       } />
 
@@ -117,13 +122,15 @@ function App() {
     <Router>
       <GlobalProvider>
         <AuthProvider>
-          <CategoryProvider>
-            <BrandProvider>
-              <DeliveryTypeProvider>
-                <AppContent />
-              </DeliveryTypeProvider>
-            </BrandProvider>
-          </CategoryProvider>
+          <DashboardProvider> {/* Add DashboardProvider here */}
+            <CategoryProvider>
+              <BrandProvider>
+                <DeliveryTypeProvider>
+                  <AppContent />
+                </DeliveryTypeProvider>
+              </BrandProvider>
+            </CategoryProvider>
+          </DashboardProvider>
         </AuthProvider>
       </GlobalProvider>
     </Router>

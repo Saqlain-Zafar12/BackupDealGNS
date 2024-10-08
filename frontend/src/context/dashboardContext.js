@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -8,7 +8,7 @@ const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000/api/
 export const useDashboard = () => useContext(DashboardContext);
 
 export const DashboardProvider = ({ children }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dashboardStats, setDashboardStats] = useState({});
   const [revenueStats, setRevenueStats] = useState({});
@@ -17,12 +17,12 @@ export const DashboardProvider = ({ children }) => {
   const [monthlySales, setMonthlySales] = useState([]);
   const [weeklyRevenue, setWeeklyRevenue] = useState([]);
   const [weeklySales, setWeeklySales] = useState([]);
+  const dataFetchedRef = useRef(false);
+  const [delayedFetch, setDelayedFetch] = useState(false);
 
   const token = Cookies.get('token');
 
   const fetchData = useCallback(async (endpoint, setter) => {
-    setLoading(true);
-    setError(null);
     try {
       console.log(`Fetching from: ${API_URL}/dashboard${endpoint}`);
       const response = await axios.get(`${API_URL}/dashboard${endpoint}`, {
@@ -46,8 +46,6 @@ export const DashboardProvider = ({ children }) => {
       if (err.response) {
         console.error('Error response:', err.response);
       }
-    } finally {
-      setLoading(false);
     }
   }, [token]);
 
@@ -59,10 +57,15 @@ export const DashboardProvider = ({ children }) => {
   const fetchWeeklyRevenue = useCallback(() => fetchData('/weekly-revenue', setWeeklyRevenue), [fetchData]);
   const fetchWeeklySales = useCallback(() => fetchData('/weekly-sales', setWeeklySales), [fetchData]);
 
-  const fetchAllData = useCallback(async () => {
+  const fetchAllData = useCallback(async (forceRefetch = false) => {
+    if (dataFetchedRef.current && !forceRefetch) return;
     setLoading(true);
     setError(null);
     try {
+      if (delayedFetch) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 3-second delay
+        setDelayedFetch(false); // Reset the flag
+      }
       await Promise.all([
         fetchDashboardStats(),
         fetchRevenueStats(),
@@ -72,13 +75,25 @@ export const DashboardProvider = ({ children }) => {
         fetchWeeklyRevenue(),
         fetchWeeklySales()
       ]);
+      dataFetchedRef.current = true;
     } catch (err) {
       console.error('Error fetching all dashboard data:', err);
       setError('Error fetching all dashboard data');
     } finally {
       setLoading(false);
     }
-  }, [fetchDashboardStats, fetchRevenueStats, fetchProductStats, fetchMonthlyRevenue, fetchMonthlySales, fetchWeeklyRevenue, fetchWeeklySales]);
+  }, [fetchDashboardStats, fetchRevenueStats, fetchProductStats, fetchMonthlyRevenue, fetchMonthlySales, fetchWeeklyRevenue, fetchWeeklySales, delayedFetch]);
+
+  const resetDashboardData = useCallback(() => {
+    dataFetchedRef.current = false;
+    setDashboardStats({});
+    setRevenueStats({});
+    setProductStats({});
+    setMonthlyRevenue([]);
+    setMonthlySales([]);
+    setWeeklyRevenue([]);
+    setWeeklySales([]);
+  }, []);
 
   const value = {
     loading,
@@ -90,14 +105,9 @@ export const DashboardProvider = ({ children }) => {
     monthlySales,
     weeklyRevenue,
     weeklySales,
-    fetchDashboardStats,
-    fetchRevenueStats,
-    fetchProductStats,
-    fetchMonthlyRevenue,
-    fetchMonthlySales,
-    fetchWeeklyRevenue,
-    fetchWeeklySales,
-    fetchAllData
+    setDelayedFetch,
+    fetchAllData,
+    resetDashboardData,
   };
 
   return (

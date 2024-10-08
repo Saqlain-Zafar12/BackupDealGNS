@@ -359,47 +359,47 @@ const AddProduct = () => {
               </Form.Item>
             </div>
 
-            <Form.Item name="mainImage" label="Main Image" rules={[{ required: true }]}>
-              <Upload
-                accept="image/*"
-                customRequest={({ file, onSuccess }) => {
-                  setTimeout(() => {
-                    onSuccess("ok");
-                  }, 0);
-                }}
-                onChange={handleMainImageUpload}
-                maxCount={1}
-                listType="picture-card"
-                showUploadList={false}
-              >
-                {mainImageUrl ? (
-                  <div style={{ position: 'relative' }}>
-                    <img src={mainImageUrl} alt="Main" style={{ width: '100%' }} />
-                    <div style={{ position: 'absolute', top: 0, right: 0 }}>
-                      <Button 
-                        icon={<EyeOutlined />} 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePreview(mainImageUrl);
-                        }}
-                      />
-                      <Button 
-                        icon={<DeleteOutlined />} 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(mainImageUrl);
-                        }}
-                      />
+              <Form.Item name="mainImage" label="Main Image" rules={[{ required: true }]}>
+                <Upload
+                  accept="image/*"
+                  customRequest={({ file, onSuccess }) => {
+                    setTimeout(() => {
+                      onSuccess("ok");
+                    }, 0);
+                  }}
+                  onChange={handleMainImageUpload}
+                  maxCount={1}
+                  listType="picture-card"
+                  showUploadList={false}
+                >
+                  {mainImageUrl ? (
+                    <div style={{ position: 'relative' }}>
+                      <img src={mainImageUrl} alt="Main" style={{ width: '100%' }} />
+                      <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                        <Button 
+                          icon={<EyeOutlined />} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreview(mainImageUrl);
+                          }}
+                        />
+                        <Button 
+                          icon={<DeleteOutlined />} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(mainImageUrl);
+                          }}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div>
-                    {uploadingMain ? <LoadingOutlined /> : <PlusOutlined />}
-                    <div style={{ marginTop: 8 }}>Upload</div>
-                  </div>
-                )}
-              </Upload>
-            </Form.Item>
+                  ) : (
+                    <div>
+                      {uploadingMain ? <LoadingOutlined /> : <PlusOutlined />}
+                      <div style={{ marginTop: 8 }}>Upload</div>
+                    </div>
+                  )}
+                </Upload>
+              </Form.Item>
 
             <Form.Item name="tabImages" label="Tab Images">
               <Upload

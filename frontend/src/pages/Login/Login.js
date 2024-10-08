@@ -3,17 +3,21 @@ import { Form, Input, Button, Checkbox, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { FaShoppingCart } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext'; // Update the path as needed
+import { useAuth } from '../../context/AuthContext';
+import { useDashboard } from '../../context/dashboardContext'; // Import useDashboard
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const { resetDashboardData, setDelayedFetch } = useDashboard(); // Add setDelayedFetch
 
   const onFinish = async (values) => {
     try {
       await login(values.email, values.password);
       message.success('Login successful!');
+      resetDashboardData();
+      setDelayedFetch(true); // Set the flag for delayed fetch
       const from = location.state?.from?.pathname || "/dashboard";
       navigate(from, { replace: true });
     } catch (error) {

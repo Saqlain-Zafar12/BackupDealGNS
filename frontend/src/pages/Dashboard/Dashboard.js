@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic, Table, Spin, Alert, Typography, Layout } from 'antd';
 import { ShoppingCartOutlined, ShoppingOutlined, UserOutlined, MoneyCollectOutlined } from '@ant-design/icons';
 import { useDashboard } from '../../context/dashboardContext';
@@ -12,6 +12,8 @@ const { Content } = Layout;
 
 const Dashboard = () => {
   const { 
+    loading, 
+    error, 
     dashboardStats, 
     revenueStats, 
     productStats,
@@ -19,16 +21,26 @@ const Dashboard = () => {
     monthlySales,
     weeklyRevenue,
     weeklySales,
-    loading, 
-    error, 
     fetchAllData
   } = useDashboard();
 
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]); 
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  if (loading) return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }} />;
+  useEffect(() => {
+    fetchAllData().then(() => {
+      setIsInitialLoading(false);
+    });
+  }, [fetchAllData]);
+
+  if (isInitialLoading || loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
+        <Spin size="large" />
+        <p style={{ marginTop: '20px' }}>Loading dashboard data...</p>
+      </div>
+    );
+  }
+
   if (error) return <Alert message={error} type="error" style={{ margin: '24px' }} />;
 
   const topProductsColumns = [
