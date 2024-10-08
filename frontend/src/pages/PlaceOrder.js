@@ -1,29 +1,47 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Form, Input, Select, Button, message, Layout, Row, Col, Card, Typography, Tabs, Modal, Image } from 'antd';
-import { FaShoppingCart, FaTruck, FaPercent } from 'react-icons/fa';
+import { FaShoppingCart, FaTruck, FaPercent, FaTag } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useWebRelated } from '../context/WebRelatedContext';
 import Cookies from 'js-cookie';
+import Paragraph from 'antd/es/skeleton/Paragraph';
 
 const { Option } = Select;
 const { Content } = Layout;
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
-const ImageViewer = ({ currentImage, t }) => {
+const ImageViewer = ({ currentImage, t, discount, freeDelivery }) => {
   return (
-    <div
-      className="relative overflow-hidden flex justify-center items-center cursor-default
-                 h-[30vh] sm:h-[40vh] md:h-[50vh] lg:h-[60vh] xl:h-[70vh]" // Fixed height for mobile, responsive for larger screens
-    >
-      <Image.PreviewGroup>
-        <Image
-          src={`${currentImage}`} 
-          alt={`${t('placeOrder.mainImage')}`}
-          className="w-full h-full object-contain transition-transform duration-300 ease-out"
-        />
-      </Image.PreviewGroup>
+    <div className="relative">
+      <Image
+        src={currentImage}
+        alt="Product"
+        className="w-full h-auto object-contain"
+        preview={{
+          maskClassName: 'customize-mask',
+          mask: (
+            <div className="customize-mask">
+              {t('product.clickToView')}
+            </div>
+          ),
+        }}
+      />
+      {(discount > 0 || freeDelivery) && (
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {discount > 0 && (
+            <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
+              <FaTag className="mr-1" /> {parseInt(discount)}% {t('product.off')}
+            </div>
+          )}
+          {freeDelivery && (
+            <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
+              <FaTruck className="mr-1" /> {t('product.freeDelivery')}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -44,6 +62,7 @@ const PlaceOrder = () => {
       if (product && product.id && !dataFetchedRef.current) {
         try {
           const data = await getWebProductDataById(product.id);
+          console.log(data,"sadsadsadsadas")
           setProductData(data);
           dataFetchedRef.current = true;
         } catch (error) {
@@ -107,6 +126,13 @@ const PlaceOrder = () => {
   const defaultImage = 'path/to/default/image.jpg'; // Replace with your default image path
   const currentImage = tabsImageUrl[selectedImage] || defaultImage;
 
+  // Add this function to determine if delivery is free
+  const isDeliveryFree = (charges) => {
+    const result = parseFloat(charges) <= 0;
+    console.log('isDeliveryFree:', { charges, result });
+    return result;
+  };
+console.log(productData)
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content className="px-4 py-12">
@@ -114,10 +140,13 @@ const PlaceOrder = () => {
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12} lg={12} xl={12}>
               <Card>
-                <Title level={4} className="mb-4">
-                  {title}
-                </Title>
-                <ImageViewer currentImage={currentImage} t={t} />
+                {console.log('Product Data:', productData)} {/* Add this line */}
+                <ImageViewer 
+                  currentImage={currentImage} 
+                  t={t} 
+                  discount={productData.discount} 
+                  freeDelivery={isDeliveryFree(productData.delivery_charges)}
+                />
                 {tabsImageUrl.length > 0 && (
                   <Tabs
                     defaultActiveKey="0"
@@ -139,7 +168,11 @@ const PlaceOrder = () => {
                   </Tabs>
                 )}
                 <div className="mt-4">
+                <Title level={4} className="mb-4">
+                {title}
+              </Title>
                   <Row justify="space-between" align="middle">
+                
                     <Col>
                       <Text strong className="text-2xl text-red-500">
                         {productData.total_price} AED
@@ -148,11 +181,7 @@ const PlaceOrder = () => {
                         {productData.actual_price} AED
                       </Text>
                     </Col>
-                    <Col>
-                      <Text className="flex items-center">
-                        <FaPercent className="mr-1" /> {parseInt(productData.discount)} {t('product.off')}
-                      </Text>
-                    </Col>
+                 
                   </Row>
                   <Row justify="space-between" className="mt-2">
                     <Col>
@@ -161,12 +190,7 @@ const PlaceOrder = () => {
                         {productData.sold_items} {t('placeOrder.itemsSold')}
                       </Text>
                     </Col>
-                    <Col>
-                      <Text className="flex items-center text-green-500">
-                        <FaTruck className="mr-2" />
-                        {t('product.freeDelivery')}
-                      </Text>
-                    </Col>
+                   
                   </Row>
                   <Paragraph className="mt-4">{description}</Paragraph>
                 </div>
@@ -262,6 +286,12 @@ const PlaceOrder = () => {
                     </Button>
                   </Form.Item>
                 </Form>
+              </Card>
+              
+              {/* New Card for Product Description */}
+              <Card className="mt-4 ">
+              <h1><b>{t('placeOrder.description')}</b></h1>
+              {description}
               </Card>
             </Col>
           </Row>

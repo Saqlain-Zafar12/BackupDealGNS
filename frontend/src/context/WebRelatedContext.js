@@ -21,17 +21,19 @@ export const WebRelatedProvider = ({ children }) => {
       const response = await axios.get(`${API_URL}/web/recommended-products`, {
         params: { query }
       });
+      console.log(response.data,"response.data")
       const products = response.data.map(product => ({
-        id: product.id,
-        main_image_url: product.main_image_url,
-        en_title: product.en_title,
-        en_category: product.en_category,
-        discount: product.discount,
-        delivery_charges: product.delivery_charges,
-        final_price: product.final_price,
-        vat_included: product.vat_included,
-        ar_title: product.ar_title,
-        ar_category: product.ar_category, 
+       
+        id: product?.id,
+        main_image_url: product?.main_image_url,
+        en_title: product?.en_title,
+        en_category: product?.en_category,
+        discount: product?.discount,
+        delivery_charges: product?.delivery_charges,
+        final_price: product?.final_price,
+        vat_included: product?.vat_included,
+        ar_title: product?.ar_title,
+        ar_category: product?.ar_category, 
       }));
       if (query) {
         setSearchResults(products);

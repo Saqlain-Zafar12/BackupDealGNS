@@ -13,7 +13,7 @@ const ProductCard = ({ product }) => {
   const { t, i18n } = useTranslation();
 
   if (!product) return null;
-
+console.log(product,"product")
   const handleCardClick = () => {
     navigate('/place-order', { state: { product } });
   };
@@ -25,8 +25,8 @@ const ProductCard = ({ product }) => {
 
   // Use the appropriate language title and category
   const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
-  const title = i18n.language === 'ar' ? product.ar_title : product.en_title;
-  const category = i18n.language === 'ar' ? product.ar_category : product.en_category;
+  const title = i18n.language === 'ar' ? product?.ar_title : product?.en_title;
+  const category = i18n.language === 'ar' ? product?.ar_category : product?.en_category;
   return (
     <div className="w-1/2 sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
       <Card
@@ -37,16 +37,16 @@ const ProductCard = ({ product }) => {
           <div className="relative overflow-hidden h-48 sm:h-64">
             <img
               alt={title || 'Product Image'}
-              src={`${product.main_image_url}`}
+              src={`${product?.main_image_url}`}
               className="w-full h-full object-contain" // Ensure the image fits within the card
             />
             <div className="absolute top-2 left-2 flex flex-col gap-1">
-              {parseFloat(product.discount) > 0 && (
+              {parseFloat(product?.discount) > 0 && (
                 <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
-                  <FaTag className="mr-1" /> {parseInt(product.discount)}% {t('product.off')}
+                  <FaTag className="mr-1" /> {parseInt(product?.discount)}% {t('product.off')}
                 </div>
               )}
-              {isDeliveryFree(product.delivery_charges) && (
+              {isDeliveryFree(product?.delivery_charges) && (
                 <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center">
                   <FaTruck className="mr-1" /> {t('product.freeDelivery')}
                 </div>
@@ -67,7 +67,7 @@ const ProductCard = ({ product }) => {
             <Space direction="vertical" className="w-full">
               <div className="flex justify-between items-center mt-2">
                 <Text className="text-sm sm:text-lg font-semibold">
-                  {product.price || product.final_price} AED
+                  {product?.price || product?.final_price} AED
                 </Text>
                 <Text type="secondary" className="text-xs sm:text-sm">
                   {product.vat_included ? t('product.vatIncluded') : t('product.vatNotIncluded')}
@@ -86,7 +86,7 @@ const ProductList = () => {
   const { currentView, recommendedProducts, searchResults, isSearching, isLoadingRecommended } = useWebRelated();
 
   const productsToDisplay = currentView === 'searchResults' ? searchResults : recommendedProducts;
-
+  console.log(productsToDisplay,"productsToDisplay")
   if (isSearching || (currentView === 'home' && isLoadingRecommended)) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -106,7 +106,7 @@ const ProductList = () => {
         {productsToDisplay.length > 0 ? (
           <div className="flex flex-wrap -mx-2">
             {productsToDisplay.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product?.id} product={product} />
             ))}
           </div>
         ) : (

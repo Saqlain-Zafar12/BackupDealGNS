@@ -24,7 +24,8 @@
     "product": {
       "freeDelivery": "Free Delivery",
       "off": "OFF",
-      "vatIncluded": "VAT included"
+      "vatIncluded": "VAT included",
+      "clickToView": "Click to view"
     },
     "footer": {
       "contactUs": "Contact Us",
@@ -69,7 +70,7 @@
       "addressPlaceholder": "Building No, Street name, Area",
       "submitOrder": "SUBMIT ORDER",
       "description": "Description",
-      "productDescription": "Luxurious and durable memory foam pillow with cooling gel technology. Designed to provide optimal neck and head support for a restful night's sleep. Hypoallergenic and dust mite resistant, suitable for all sleeping positions. Comes with a breathable, machine-washable cover for easy maintenance.",
+      "productDescription": "Free Size Women Yoga Shorts Seamless Butt Lifting Tummy Control. Made with high-quality stretchy fabric for ultimate comfort. Butt lifting design enhances body shape, while tummy control provides extra support. Perfect for yoga, workouts, and everyday wear.",
       "orderSuccess": "Order placed successfully!",
       "mainImage": "Main Image"
     },

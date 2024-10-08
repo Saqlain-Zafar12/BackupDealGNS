@@ -189,14 +189,14 @@ const EditProduct = () => {
           <h2 className="text-2xl font-semibold mb-4">Edit Product</h2>
           <Form form={form} onFinish={onFinish} layout="vertical" initialValues={{ attributes: [], vat_included: true }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-              <Form.Item name="category_id" label="Category" rules={[{ required: true }]}>
+              <Form.Item name="category_id" label="Category" >
                 <Select placeholder="Select a category">
                   {categories.map(category => (
                     <Option key={category.id} value={category.id}>{category.en_category_name}</Option>
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item name="brand_id" label="Brand" rules={[{ required: true }]}>
+              <Form.Item name="brand_id" label="Brand" >
                 <Select placeholder="Select a brand">
                   {brands.map(brand => (
                     <Option key={brand.id} value={brand.id}>{brand.en_brand_name}</Option>

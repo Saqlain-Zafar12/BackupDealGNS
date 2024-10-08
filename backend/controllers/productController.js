@@ -22,7 +22,7 @@ exports.addProduct = async (req, res) => {
     max_quantity_per_user, sold, image_url, tabs_image_url
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined || !image_url) {
+  if ( !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined || !image_url) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -111,7 +111,7 @@ exports.editProduct = async (req, res) => {
     max_quantity_per_user, sold, tabs_image_url
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
+  if ( !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -189,4 +189,4 @@ exports.getProductDetails = async (req, res) => {
     console.error('Error fetching product details:', err);
     res.status(500).json({ error: 'Error fetching product details', details: err.message });
   }
-};
+};  

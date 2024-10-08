@@ -167,7 +167,7 @@ const Dashboard = () => {
                 value={revenueSummary.total}
                 precision={2}
                 valueStyle={{ color: revenueSummary.isPositive ? '#3f8600' : '#cf1322' }}
-                prefix={<MoneyCollectOutlined />}
+                prefix={<img src="/riyal.png" alt="Products" style={{ width: '24px', marginRight: '8px' }} />}
                 suffix="AED"
               />
            
