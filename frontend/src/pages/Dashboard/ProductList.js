@@ -148,7 +148,7 @@ const ProductList = () => {
             {selectedProduct.image_url ? (
               <Image
                 width={200}
-                src={`${backendUrl}/${selectedProduct.image_url}`}
+                src={selectedProduct.image_url}
                 alt={selectedProduct.en_title}
               />
             ) : (
@@ -156,14 +156,14 @@ const ProductList = () => {
             )}
 
             <h3>Tab Images:</h3>
-            {selectedProduct.tabs_image_url && Object.keys(selectedProduct.tabs_image_url).length > 0 ? (
+            {selectedProduct.tabs_image_url && selectedProduct.tabs_image_url.length > 0 ? (
               <Image.PreviewGroup>
                 <Space>
-                  {Object.values(selectedProduct.tabs_image_url).map((url, index) => (
+                  {selectedProduct.tabs_image_url.map((url, index) => (
                     <Image
                       key={index}
                       width={100}
-                      src={`${backendUrl}/${url}`}
+                      src={url}
                       alt={`Tab image ${index + 1}`}
                     />
                   ))}

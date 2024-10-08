@@ -59,10 +59,13 @@ export default function Navbar() {
           <div className="flex items-center space-x-4 w-full mb-4 sm:mb-0">
             <Link 
               to="/" 
-              className="bg-red-600 text-white font-bold py-1 px-3 rounded-md mx-2"
               onClick={handleLogoClick}
             >
-              DealsGNS
+              <img 
+                src="/final_gns_new_2-1-removebg-preview.png" // Replace with the actual path to your logo in the public folder
+                alt="DealsGNS Logo"
+                className="h-16 w-auto mr-2" // Adjust height and margin as needed
+              />
             </Link>
             <div className="flex-grow flex items-center">
               <Input

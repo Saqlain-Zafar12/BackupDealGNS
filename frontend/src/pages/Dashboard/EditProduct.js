@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload, Image, Layout } from 'antd';
-import { MinusCircleOutlined, PlusOutlined, UploadOutlined, CloseOutlined, EditOutlined } from '@ant-design/icons';
+import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload, Layout, Modal } from 'antd';
+import { MinusCircleOutlined, PlusOutlined, UploadOutlined, LoadingOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
 import { useCategory } from '../../context/CategoryContext';
 import { useBrand } from '../../context/BrandContext';
@@ -16,30 +16,24 @@ const EditProduct = () => {
   const { id } = useParams();
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { updateProduct, getProductById, selectedProduct, setSelectedProduct } = useProduct();
+  const { updateProduct, getProductById ,uploadImage} = useProduct();
   const { categories } = useCategory();
   const { brands } = useBrand();
   const { attributes } = useAttribute();
   const [loading, setLoading] = useState(false);
-  const [mainImageFile, setMainImageFile] = useState([]);
-  const [tabImageFiles, setTabImageFiles] = useState([]);
-  const [removedTabImages, setRemovedTabImages] = useState([]);
+  const [mainImageUrl, setMainImageUrl] = useState(null);
+  const [tabImageUrls, setTabImageUrls] = useState([]);
+  const [uploadingMain, setUploadingMain] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [uploadingTab, setUploadingTab] = useState(false);
 
-  const [productMainImage, setProductMainImage] = useState(null);
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const product = await getProductById(id);
-        setProductMainImage(product.image_url);
-        let parsedAttributes = product.attributes;
-        if (typeof product.attributes === 'string') {
-          try {
-            parsedAttributes = JSON.parse(product.attributes);
-          } catch (error) {
-            console.error('Error parsing attributes:', error);
-            parsedAttributes = [];
-          }
-        }
+        setMainImageUrl(product.image_url);
+        setTabImageUrls(product.tabs_image_url || []);
         form.setFieldsValue({
           ...product,
           category_id: product.category_id,
@@ -55,40 +49,21 @@ const EditProduct = () => {
           is_deal: product.is_deal,
           is_hot_deal: product.is_hot_deal,
           vat_included: product.vat_included,
-          attributes: parsedAttributes,
+          attributes: typeof product.attributes === 'string' ? JSON.parse(product.attributes) : product.attributes,
         });
-        // Set existing images if available
-        if (product.image_url) {
-          setMainImageFile([{
-            uid: '-1',
-            name: product.image_url.split('\\').pop(),
-            status: 'done',
-            url: `${backendUrl}/${product.image_url}`
-          }]);
-        }
-        if (Array.isArray(product.tabs_image_url)) {
-          setTabImageFiles(product.tabs_image_url.map((url, index) => ({
-            uid: `-${index}`,
-            name: url.split('\\').pop(),
-            status: 'done',
-            url: `${backendUrl}/${url}`,
-            isExisting: true // Add this flag to identify existing images
-          })));
-        }
       } catch (error) {
         console.error('Error fetching product:', error);
         message.error('Failed to fetch product details');
       }
     };
     fetchProduct();
-
-    return () => setSelectedProduct(null);
-  }, [id, form, getProductById, setSelectedProduct]);
+  }, [id, form, getProductById]);
 
   const calculateFinalPrice = (actualPrice, discountPercentage) => {
     const discount = (actualPrice * discountPercentage) / 100;
     return actualPrice - discount;
   };
+
 
   const handlePriceChange = () => {
     const actualPrice = form.getFieldValue('actual_price');
@@ -133,71 +108,79 @@ const EditProduct = () => {
   };
 
   const formatProductData = (values) => {
-    let formattedAttributes = [];
-    if (typeof values.attributes === 'string') {
-      try {
-        formattedAttributes = JSON.parse(values.attributes);
-      } catch (error) {
-        console.error('Error parsing attributes:', error);
-      }
-    } else if (Array.isArray(values.attributes)) {
-      formattedAttributes = values.attributes.filter(attr => 
-        attr && attr.attribute_id && attr.values && attr.values.length > 0
-      );
-    }
+    const formattedAttributes = Array.isArray(values.attributes) 
+      ? values.attributes.filter(attr => attr && attr.attribute_id && attr.values && attr.values.length > 0)
+      : [];
 
     return {
       ...values,
       actual_price: parseFloat(values.actual_price),
       off_percentage_value: parseFloat(values.off_percentage_value),
       price: parseFloat(values.price),
-      cost: parseFloat(values.cost),
       delivery_charges: parseFloat(values.delivery_charges),
       quantity: parseInt(values.quantity),
       max_quantity_per_user: parseInt(values.max_quantity_per_user),
       sold: parseInt(values.sold),
       attributes: formattedAttributes,
-      mainImage: mainImageFile.length > 0 ? (mainImageFile[0].originFileObj || mainImageFile[0]) : productMainImage,
-      image_url: productMainImage,
-      tabImages: tabImageFiles.filter(file => !file.isExisting).map(file => file.originFileObj),
-      tabs_image_url: tabImageFiles
-        .filter(file => file.isExisting)
-        .map(file => file.url?.replace(`${backendUrl}/`, '') || file.name),
-      removedTabImages: removedTabImages,
+      image_url: mainImageUrl,
+      tabs_image_url: tabImageUrls.flat(), // Ensure this is a flat array
       is_deal: values.is_deal || false,
       is_hot_deal: values.is_hot_deal || false,
       vat_included: values.vat_included === undefined ? true : values.vat_included
     };
   };
 
-  const handleMainImageUpload = ({ fileList }) => {
-    // Only keep the last uploaded file
-    const newFileList = fileList.slice(-1);
-    setMainImageFile(newFileList);
-    setProductMainImage(null);  // Clear the initial image URL when a new image is uploaded
+  const handleMainImageUpload = async (info) => {
+    const { status, originFileObj } = info.file;
+    if (status === 'uploading') {
+      setUploadingMain(true);
+      return;
+    }
+    if (status === 'done') {
+      try {
+        const url = await uploadImage(originFileObj);
+        setMainImageUrl(url);
+        message.success(`${info.file.name} file uploaded successfully`);
+      } catch (error) {
+        message.error(`${info.file.name} file upload failed.`);
+      } finally {
+        setUploadingMain(false);
+      }
+    }
   };
 
-  const handleRemoveMainImage = () => {
-    setMainImageFile([]);
-    setProductMainImage(null);  // Clear the initial image URL when the image is removed
+  const handleTabImagesUpload = async (info) => {
+    const { status, originFileObj } = info.file;
+    if (status === 'uploading') {
+      setUploadingTab(true);
+      return;
+    }
+    if (status === 'done') {
+      try {
+        const url = await uploadImage(originFileObj);
+        setTabImageUrls(prev => [...prev, url]); // Append to flat array
+        message.success(`${info.file.name} file uploaded successfully`);
+      } catch (error) {
+        message.error(`${info.file.name} file upload failed.`);
+      } finally {
+        setUploadingTab(false);
+      }
+    }
   };
 
-  const handleTabImagesUpload = ({ fileList }) => {
-    // Filter out files that are being removed
-    const newFiles = fileList.filter(file => file.status !== 'removed');
-    
-    // Identify removed existing images
-    const removedExisting = tabImageFiles.filter(
-      oldFile => oldFile.isExisting && !newFiles.some(newFile => newFile.uid === oldFile.uid)
-    );
-    
-    setRemovedTabImages(prev => [...prev, ...removedExisting.map(file => file.name)]);
-
-    // Update tabImageFiles with new state
-    setTabImageFiles(newFiles);
+  const handlePreview = (url) => {
+    setPreviewImage(url);
+    setPreviewVisible(true);
   };
 
-  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
+  const handleDelete = (url) => {
+    if (url === mainImageUrl) {
+      setMainImageUrl(null);
+      form.setFieldsValue({ mainImage: undefined });
+    } else {
+      setTabImageUrls(prev => prev.filter(u => u !== url));
+    }
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -390,47 +373,75 @@ const EditProduct = () => {
               </Form.Item>
             </div>
 
-            <Form.Item name="mainImage" label="Main Image">
+            <Form.Item
+              name="mainImage"
+              label="Main Image"
+              rules={mainImageUrl ? [] : [{ required: true, message: 'Main image is required' }]}
+            >
               <Upload
-                listType="picture-card"
-                fileList={mainImageFile}
+                accept="image/*"
+                customRequest={({ file, onSuccess }) => {
+                  setTimeout(() => {
+                    onSuccess("ok");
+                  }, 0);
+                }}
                 onChange={handleMainImageUpload}
-                beforeUpload={() => false}
                 maxCount={1}
-                onRemove={handleRemoveMainImage}
+                listType="picture-card"
+                showUploadList={false}
               >
-                {mainImageFile.length >= 1 ? null : (
+                {mainImageUrl ? (
+                  <div style={{ position: 'relative' }}>
+                    <img src={mainImageUrl} alt="Main" style={{ width: '100%' }} />
+                    <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                      <Button 
+                        icon={<EyeOutlined />} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreview(mainImageUrl);
+                        }}
+                      />
+                      <Button 
+                        icon={<DeleteOutlined />} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(mainImageUrl);
+                        }}
+                      />
+                    </div>
+                  </div>
+                ) : (
                   <div>
-                    <PlusOutlined />
+                    {uploadingMain ? <LoadingOutlined /> : <PlusOutlined />}
                     <div style={{ marginTop: 8 }}>Upload</div>
                   </div>
                 )}
               </Upload>
             </Form.Item>
 
-            {mainImageFile.length > 0 && (
-              <div style={{ marginTop: -24, marginBottom: 16 }}>
-                <Button 
-                  icon={<EditOutlined />} 
-                  onClick={() => document.querySelector('input[type="file"]').click()}
-                >
-                  Replace Image
-                </Button>
-              </div>
-            )}
-
             <Form.Item name="tabImages" label="Tab Images">
               <Upload
-                listType="picture-card"
-                fileList={tabImageFiles}
-                onChange={handleTabImagesUpload}
-                beforeUpload={() => false}
+                accept="image/*"
+                customRequest={({ file, onSuccess, onError }) => {
+                  handleTabImagesUpload({ file: { ...file, status: 'done', originFileObj: file } })
+                    .then(() => onSuccess('ok'))
+                    .catch(error => onError(error));
+                }}
                 multiple
                 maxCount={5}
+                listType="picture-card"
+                fileList={tabImageUrls.map((url, index) => ({
+                  uid: `-${index}`,
+                  name: `image-${index}`,
+                  status: 'done',
+                  url: typeof url === 'string' ? url : '', // Ensure url is a string
+                }))}
+                onPreview={(file) => handlePreview(file.url)}
+                onRemove={(file) => handleDelete(file.url)}
               >
-                {tabImageFiles.length >= 5 ? null : (
+                {tabImageUrls.length >= 5 ? null : (
                   <div>
-                    <PlusOutlined />
+                    {uploadingTab ? <LoadingOutlined /> : <UploadOutlined />}
                     <div style={{ marginTop: 8 }}>Upload</div>
                   </div>
                 )}
@@ -456,8 +467,17 @@ const EditProduct = () => {
           </Form>
         </div>
       </Content>
+      <Modal
+        visible={previewVisible}
+        title="Image Preview"
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+      >
+        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+      </Modal>
     </Layout>
   );
 };
+
 
 export default EditProduct;

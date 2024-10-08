@@ -70,7 +70,7 @@ const OrderConfirmation = () => {
                 <div key={index} className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-4">
                     <div className="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center">
-                      <img src={`${backendUrl}/${product.main_image}`} alt={product.title} className="w-full h-full object-cover rounded-md" />
+                      <img src={`${product.main_image}`} alt={product.title} className="w-full h-full object-cover rounded-md" />
                     </div>
                     <div>
                       <h4 className="font-semibold">{isRTL ? product.ar_title : product.en_title}</h4>

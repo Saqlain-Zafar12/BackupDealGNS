@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Form, Input, Select, Button, message, Layout, Row, Col, Card, Typography, Tabs } from 'antd';
+import { Form, Input, Select, Button, message, Layout, Row, Col, Card, Typography, Tabs, Modal, Image } from 'antd';
 import { FaShoppingCart, FaTruck, FaPercent } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useWebRelated } from '../context/WebRelatedContext';
@@ -11,6 +11,23 @@ const { Content } = Layout;
 const { Title, Text, Paragraph } = Typography;
 const { TabPane } = Tabs;
 
+const ImageViewer = ({ currentImage, t }) => {
+  return (
+    <div
+      className="relative overflow-hidden flex justify-center items-center cursor-default
+                 h-[30vh] sm:h-[40vh] md:h-[50vh] lg:h-[60vh] xl:h-[70vh]" // Fixed height for mobile, responsive for larger screens
+    >
+      <Image.PreviewGroup>
+        <Image
+          src={`${currentImage}`} 
+          alt={`${t('placeOrder.mainImage')}`}
+          className="w-full h-full object-contain transition-transform duration-300 ease-out"
+        />
+      </Image.PreviewGroup>
+    </div>
+  );
+};
+
 const PlaceOrder = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
@@ -19,9 +36,6 @@ const PlaceOrder = () => {
   const [productData, setProductData] = useState(product || null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [form] = Form.useForm();
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
-  const imageRef = useRef(null);
   const navigate = useNavigate();
   const dataFetchedRef = useRef(false);
 
@@ -77,23 +91,6 @@ const PlaceOrder = () => {
     }
   };
 
-  const handleImageChange = (key) => {
-    setSelectedImage(parseInt(key));
-  };
-
-  const handleImageClick = () => {
-    setIsZoomed(!isZoomed);
-  };
-
-  const handleMouseMove = (e) => {
-    if (isZoomed && imageRef.current) {
-      const { left, top, width, height } = imageRef.current.getBoundingClientRect();
-      const x = ((e.clientX - left) / width) * 100;
-      const y = ((e.clientY - top) / height) * 100;
-      setZoomPosition({ x, y });
-    }
-  };
-
   if (!productData) {
     return <div>Loading...</div>;
   }
@@ -101,17 +98,15 @@ const PlaceOrder = () => {
   const title = i18n.language === 'ar' ? productData.ar_title : productData.en_title;
   const description = i18n.language === 'ar' ? productData.ar_description : productData.en_description;
 
-  // Parse the tabs_image_url JSON if it's a string, or use an empty array if it's undefined
   const tabsImageUrl = productData.tabs_image_url
     ? (typeof productData.tabs_image_url === 'string' 
         ? JSON.parse(productData.tabs_image_url) 
         : productData.tabs_image_url)
     : [];
 
-  // Use a default image if tabsImageUrl is empty
   const defaultImage = 'path/to/default/image.jpg'; // Replace with your default image path
   const currentImage = tabsImageUrl[selectedImage] || defaultImage;
-  const backendUrl = (process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000').replace(/\/api\/v1$/, '');
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content className="px-4 py-12">
@@ -122,37 +117,18 @@ const PlaceOrder = () => {
                 <Title level={4} className="mb-4">
                   {title}
                 </Title>
-                <div
-                  style={{
-                    position: 'relative',
-                    overflow: 'hidden',
-                    height: '300px',
-                    cursor: isZoomed ? 'move' : 'zoom-in',
-                  }}
-                  onClick={handleImageClick}
-                  onMouseMove={handleMouseMove}
-                >
-                  <img
-                    ref={imageRef}
-                    src={`${backendUrl}/${currentImage}`}
-                    alt={`${t('placeOrder.mainImage')}`}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      transform: isZoomed ? 'scale(2)' : 'scale(1)',
-                      transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                      transition: 'transform 0.3s ease-out',
-                    }}
-                  />
-                </div>
+                <ImageViewer currentImage={currentImage} t={t} />
                 {tabsImageUrl.length > 0 && (
-                  <Tabs defaultActiveKey="0" onChange={handleImageChange}>
+                  <Tabs
+                    defaultActiveKey="0"
+                    onChange={setSelectedImage}
+                    direction={i18n.language === 'ar' ? 'rtl' : 'ltr'} // Set direction based on language
+                  >
                     {tabsImageUrl.map((image, index) => (
                       <TabPane
                         tab={
                           <img
-                            src={`${backendUrl}/${image}`}
+                            src={`${image}`}
                             alt={`${t('placeOrder.thumbnail')} ${index + 1}`}
                             className="w-16 h-16 object-cover"
                           />

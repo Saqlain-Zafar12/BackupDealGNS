@@ -34,11 +34,11 @@ const ProductCard = ({ product }) => {
         className="h-full"
         onClick={handleCardClick}
         cover={
-          <div className="relative">
+          <div className="relative overflow-hidden h-48 sm:h-64">
             <img
               alt={title || 'Product Image'}
-              src={`${backendUrl}/${product.main_image_url}`}
-              className="object-cover h-36 sm:h-48 w-full"
+              src={`${product.main_image_url}`}
+              className="w-full h-full object-contain" // Ensure the image fits within the card
             />
             <div className="absolute top-2 left-2 flex flex-col gap-1">
               {parseFloat(product.discount) > 0 && (
@@ -123,6 +123,6 @@ const ProductList = () => {
       </div>
     </div>
   );
-};
+}; 
 
 export default ProductList;
