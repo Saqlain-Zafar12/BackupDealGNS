@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaEnvelope, FaPhone } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaEnvelope, FaPhone } from "react-icons/fa";
+import { FaTiktok } from "react-icons/fa6";
 import { Input } from './Input';
 import { Button } from './Botton';
 
@@ -17,7 +18,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center">
                 <FaFacebook className="w-4 h-4 me-2" />
-                dealsgns.ae
+                <a href="https://www.facebook.com/people/GNS/61566604420028/" target="_blank" rel="noopener noreferrer">GNS</a>
               </li>
               <li className="flex items-center">
                 <FaEnvelope className="w-4 h-4 me-2" />
@@ -25,7 +26,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <FaInstagram className="w-4 h-4 me-2" />
-                dealsgns.ae
+                <a href="https://www.instagram.com/gnsecom/" target="_blank" rel="noopener noreferrer">gnsecom</a>
               </li>
               <li className="flex items-center">
                 <FaPhone className="w-4 h-4 me-2" />
@@ -51,17 +52,14 @@ export default function Footer() {
             </div>
             <p className="mb-2">{t('footer.followUs')}</p>
             <div className="flex space-x-2">
-              <a href="#" className="bg-white p-2 rounded-full">
+              <a href="https://www.facebook.com/people/GNS/61566604420028/" target="_blank" rel="noopener noreferrer" className="bg-white p-2 rounded-full">
                 <FaFacebook className="w-5 h-5 text-[#2d3741]" />
               </a>
-              <a href="#" className="bg-white p-2 rounded-full">
-                <FaTwitter className="w-5 h-5 text-[#2d3741]" />
+              <a href="https://www.tiktok.com/@gnsecom" target="_blank" rel="noopener noreferrer" className="bg-white p-2 rounded-full">
+                <FaTiktok className="w-5 h-5 text-[#2d3741]" />
               </a>
-              <a href="#" className="bg-white p-2 rounded-full">
+              <a href="https://www.instagram.com/gnsecom/" target="_blank" rel="noopener noreferrer" className="bg-white p-2 rounded-full">
                 <FaInstagram className="w-5 h-5 text-[#2d3741]" />
-              </a>
-              <a href="#" className="bg-white p-2 rounded-full">
-                <FaYoutube className="w-5 h-5 text-[#2d3741]" />
               </a>
             </div>
           </div>

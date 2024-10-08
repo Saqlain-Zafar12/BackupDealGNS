@@ -15,8 +15,10 @@ exports.getRecommendedProducts = async (req, res) => {
           p.off_percentage_value AS discount,
           p.delivery_charges,
           p.image_url AS main_image_url,
-          c.en_category_name AS en_category,
-          c.ar_category_name AS ar_category,
+          COALESCE(c.en_category_name, '') AS en_category,
+          COALESCE(c.ar_category_name, '') AS ar_category,
+          COALESCE(b.en_brand_name, '') AS en_brand,
+          COALESCE(b.ar_brand_name, '') AS ar_brand,
           p.en_title,
           p.ar_title,
           p.price AS final_price,
@@ -27,13 +29,13 @@ exports.getRecommendedProducts = async (req, res) => {
         WHERE 
           p.is_active = true AND (
           LOWER(p.en_title) LIKE LOWER($1) OR LOWER(p.ar_title) LIKE LOWER($1) OR
-          LOWER(b.en_brand_name) LIKE LOWER($1) OR LOWER(b.ar_brand_name) LIKE LOWER($1) OR
-          LOWER(c.en_category_name) LIKE LOWER($1) OR LOWER(c.ar_category_name) LIKE LOWER($1))
+          LOWER(COALESCE(b.en_brand_name, '')) LIKE LOWER($1) OR LOWER(COALESCE(b.ar_brand_name, '')) LIKE LOWER($1) OR
+          LOWER(COALESCE(c.en_category_name, '')) LIKE LOWER($1) OR LOWER(COALESCE(c.ar_category_name, '')) LIKE LOWER($1))
         ORDER BY p.id, 
           CASE
             WHEN LOWER(p.en_title) LIKE LOWER($1) OR LOWER(p.ar_title) LIKE LOWER($1) THEN 1
-            WHEN LOWER(b.en_brand_name) LIKE LOWER($1) OR LOWER(b.ar_brand_name) LIKE LOWER($1) THEN 2
-            WHEN LOWER(c.en_category_name) LIKE LOWER($1) OR LOWER(c.ar_category_name) LIKE LOWER($1) THEN 3
+            WHEN LOWER(COALESCE(b.en_brand_name, '')) LIKE LOWER($1) OR LOWER(COALESCE(b.ar_brand_name, '')) LIKE LOWER($1) THEN 2
+            WHEN LOWER(COALESCE(c.en_category_name, '')) LIKE LOWER($1) OR LOWER(COALESCE(c.ar_category_name, '')) LIKE LOWER($1) THEN 3
             ELSE 4
           END
         LIMIT 20
@@ -46,14 +48,17 @@ exports.getRecommendedProducts = async (req, res) => {
           p.off_percentage_value AS discount,
           p.delivery_charges,
           p.image_url AS main_image_url,
-          c.en_category_name AS en_category,
-          c.ar_category_name AS ar_category,
+          COALESCE(c.en_category_name, '') AS en_category,
+          COALESCE(c.ar_category_name, '') AS ar_category,
+          COALESCE(b.en_brand_name, '') AS en_brand,
+          COALESCE(b.ar_brand_name, '') AS ar_brand,
           p.en_title,
           p.ar_title,
           p.price AS final_price,
           p.vat_included
         FROM products p
-        JOIN categories c ON p.category_id = c.id
+        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN brands b ON p.brand_id = b.id
         WHERE p.is_active = true
         ORDER BY p.created_at DESC
         LIMIT 20
@@ -68,7 +73,7 @@ exports.getRecommendedProducts = async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching products:', err);
+    console.error('Error fetching products:', err); 
     res.status(500).json({ 
       success: false, 
       error: 'Error fetching products', 
@@ -121,7 +126,8 @@ exports.getWebProductDataById = async (req, res) => {
         p.ar_description,
         p.max_quantity_per_user,
         p.attributes,
-        p.tabs_image_url
+        p.tabs_image_url,
+         p.delivery_charges
       FROM products p
       WHERE p.id = $1 AND p.is_active = true
     `;
@@ -294,4 +300,3 @@ exports.getUserOrders = async (req, res) => {
     res.status(500).json({ error: 'Error fetching user orders', details: err.message });
   }
 };
-

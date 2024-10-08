@@ -19,34 +19,16 @@ exports.addProduct = async (req, res) => {
     category_id, brand_id, actual_price, off_percentage_value, price, cost,
     en_title, ar_title, en_description, ar_description, attributes,
     delivery_charges, quantity, is_deal, is_hot_deal, vat_included,
-    max_quantity_per_user, sold
+    max_quantity_per_user, sold, image_url, tabs_image_url
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
+  if ( !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined || !image_url) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
   try {
     const sku = await generateUniqueSKU();
     
-    console.log('Received files:', req.files);
-    console.log('Received body:', req.body);
-
-    // Handle main image
-    let mainImageUrl = null;
-    if (req.files && req.files['mainImage'] && req.files['mainImage'][0]) {
-      mainImageUrl = req.files['mainImage'][0].path;
-    }
-
-    // Handle tab images
-    let tabImageUrls = [];
-    if (req.files && req.files['tabImages']) {
-      tabImageUrls = req.files['tabImages'].map(file => file.path);
-    }
-
-    console.log('Main Image URL:', mainImageUrl);
-    console.log('Tab Image URLs:', tabImageUrls);
-
     const result = await pool.query(
       `INSERT INTO products (
         category_id, brand_id, sku, actual_price, off_percentage_value, price, cost,
@@ -56,7 +38,7 @@ exports.addProduct = async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING *`,
       [category_id, brand_id, sku, actual_price, off_percentage_value, price, cost,
        en_title, ar_title, en_description, ar_description, JSON.stringify(attributes),
-       delivery_charges, quantity, mainImageUrl, JSON.stringify(tabImageUrls),
+       delivery_charges, quantity, image_url, JSON.stringify(tabs_image_url),
        is_deal, is_hot_deal, vat_included, max_quantity_per_user, sold]
     );
     res.status(201).json(result.rows[0]);
@@ -129,7 +111,7 @@ exports.editProduct = async (req, res) => {
     max_quantity_per_user, sold, tabs_image_url
   } = req.body;
 
-  if (!category_id || !brand_id || !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
+  if ( !actual_price || !price || !cost || !en_title || !ar_title || !max_quantity_per_user || sold === undefined) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -143,7 +125,7 @@ exports.editProduct = async (req, res) => {
     let tabImageUrls = [];
     if (tabs_image_url) {
       try {
-        tabImageUrls = JSON.parse(tabs_image_url);
+        tabImageUrls = Array.isArray(tabs_image_url) ? tabs_image_url : JSON.parse(tabs_image_url);
       } catch (error) {
         console.error('Error parsing tabs_image_url:', error);
         tabImageUrls = [tabs_image_url];
@@ -207,4 +189,4 @@ exports.getProductDetails = async (req, res) => {
     console.error('Error fetching product details:', err);
     res.status(500).json({ error: 'Error fetching product details', details: err.message });
   }
-};
+};  

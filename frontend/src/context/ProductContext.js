@@ -36,12 +36,11 @@ export const ProductProvider = ({ children }) => {
 
   const addProduct = async (productData) => {
     try {
-      const headers = {
-        ...getAuthHeaders(),
-        'Content-Type': 'multipart/form-data',
-      };
-      const formData = createFormData(productData);
-      const response = await axios.post(`${API_URL}/products`, formData, { headers });
+      const headers = getAuthHeaders();
+      
+      console.log('Sending product data to API:', productData);
+      const response = await axios.post(`${API_URL}/products`, productData, { headers });
+      console.log('API response:', response.data);
       setProducts(prevProducts => [...prevProducts, response.data]);
       return response.data;
     } catch (error) {
@@ -52,12 +51,34 @@ export const ProductProvider = ({ children }) => {
 
   const updateProduct = async (id, productData) => {
     try {
-      const headers = {
-        ...getAuthHeaders(),
-        'Content-Type': 'multipart/form-data',
-      };
-      const formData = createFormData(productData);
-      const response = await axios.put(`${API_URL}/products/${id}`, formData, { headers });
+      const headers = getAuthHeaders();
+
+      // Upload new main image if provided
+      if (productData.mainImage instanceof File) {
+        const mainImageUrl = await uploadImage(productData.mainImage);
+        productData.image_url = mainImageUrl;
+      }
+
+      // Upload new tab images if provided
+      if (productData.tabImages && productData.tabImages.length > 0) {
+        const newTabImages = productData.tabImages.filter(file => file instanceof File);
+        const newTabImageUrls = await Promise.all(newTabImages.map(uploadImage));
+        productData.tabs_image_url = [
+          ...(productData.tabs_image_url || []),
+          ...newTabImageUrls
+        ];
+      }
+
+      // Delete removed tab images
+      if (productData.removedTabImages && productData.removedTabImages.length > 0) {
+        await Promise.all(productData.removedTabImages.map(deleteImage));
+      }
+
+      delete productData.mainImage;
+      delete productData.tabImages;
+      delete productData.removedTabImages;
+
+      const response = await axios.put(`${API_URL}/products/${id}`, productData, { headers });
       setProducts(prevProducts => prevProducts.map(product => product.id === id ? response.data : product));
       return response.data;
     } catch (error) {
@@ -129,6 +150,32 @@ export const ProductProvider = ({ children }) => {
     }
   };
 
+  const uploadImage = async (file) => {
+    try {
+      const headers = {
+        ...getAuthHeaders(),
+        'Content-Type': 'multipart/form-data',
+      };
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await axios.post(`${API_URL}/products/upload-image`, formData, { headers });
+      return response.data.imageUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
+  const deleteImage = async (key) => {
+    try {
+      const headers = getAuthHeaders();
+      await axios.delete(`${API_URL}/products/delete-image/${key}`, { headers });
+    } catch (error) {
+      console.error('Error deleting image:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
@@ -144,7 +191,9 @@ export const ProductProvider = ({ children }) => {
     isLoading,
     getProductById,
     selectedProduct,
-    setSelectedProduct
+    setSelectedProduct,
+    uploadImage,
+    deleteImage
   };
 
   return (
