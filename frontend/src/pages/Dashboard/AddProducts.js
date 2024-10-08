@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload, Layout } from 'antd';
-import { MinusCircleOutlined, PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Form, Input, InputNumber, Select, Button, message, Space, Switch, Upload, Layout, Image, Modal } from 'antd';
+import { MinusCircleOutlined, PlusOutlined, UploadOutlined, LoadingOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useProduct } from '../../context/ProductContext';
 import { useCategory } from '../../context/CategoryContext';
 import { useBrand } from '../../context/BrandContext';
 import { useAttribute } from '../../context/AttributesContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import translate from 'translate';
 
 const { Option } = Select;
@@ -16,13 +15,17 @@ const { Content } = Layout;
 const AddProduct = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  const { addProduct } = useProduct();
+  const { addProduct, uploadImage } = useProduct();
   const { categories } = useCategory();
   const { brands } = useBrand();
   const { attributes } = useAttribute();
   const [loading, setLoading] = useState(false);
-  const [mainImage, setMainImage] = useState(null);
-  const [tabImages, setTabImages] = useState([]);
+  const [mainImageUrl, setMainImageUrl] = useState(null);
+  const [tabImageUrls, setTabImageUrls] = useState([]);
+  const [uploadingMain, setUploadingMain] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [uploadingTab, setUploadingTab] = useState(false);
 
   const calculateFinalPrice = (actualPrice, discountPercentage) => {
     const discount = (actualPrice * discountPercentage) / 100;
@@ -68,8 +71,12 @@ const AddProduct = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      console.log('Starting to format product data');
       const formattedValues = formatProductData(values);
+      console.log('Formatted product data:', formattedValues);
+      console.log('Calling addProduct function');
       await addProduct(formattedValues);
+      console.log('Product added successfully');
       message.success('Product added successfully');
       navigate('/dashboard/products');
     } catch (error) {
@@ -85,8 +92,11 @@ const AddProduct = () => {
       ? values.attributes.filter(attr => attr && attr.attribute_id && attr.values && attr.values.length > 0)
       : [];
 
+    // Create a new object without tabImages and mainImage
+    const {tabImages, mainImage, ...restValues} = values;
+
     return {
-      ...values,
+      ...restValues,
       actual_price: parseFloat(values.actual_price),
       off_percentage_value: parseFloat(values.off_percentage_value),
       price: parseFloat(values.price),
@@ -95,20 +105,67 @@ const AddProduct = () => {
       max_quantity_per_user: parseInt(values.max_quantity_per_user),
       sold: parseInt(values.sold),
       attributes: formattedAttributes,
-      mainImage: mainImage,
-      tabImages: tabImages,
+      image_url: mainImageUrl,
+      tabs_image_url: tabImageUrls,
       is_deal: values.is_deal || false,
       is_hot_deal: values.is_hot_deal || false,
       vat_included: values.vat_included === undefined ? true : values.vat_included
     };
   };
 
-  const handleMainImageUpload = (info) => {
-    setMainImage(info.file);
+  const handleMainImageUpload = async (info) => {
+    const { status, originFileObj } = info.file;
+    if (status === 'uploading') {
+      setUploadingMain(true);
+      return;
+    }
+    if (status === 'done') {
+      try {
+        const url = await uploadImage(originFileObj);
+        setMainImageUrl(url);
+        message.success(`${info.file.name} file uploaded successfully`);
+      } catch (error) {
+        message.error(`${info.file.name} file upload failed.`);
+      } finally {
+        setUploadingMain(false);
+      }
+    }
   };
 
-  const handleTabImagesUpload = ({ fileList }) => {
-    setTabImages(fileList.map(file => file.originFileObj));
+  const handleTabImagesUpload = async (info) => {
+    const { status, originFileObj } = info.file;
+    if (status === 'uploading') {
+      setUploadingTab(true);
+      return;
+    }
+    if (status === 'done') {
+      try {
+        console.log('Uploading image:', originFileObj);
+        const url = await uploadImage(originFileObj);
+        console.log('Image uploaded successfully:', url);
+        setTabImageUrls(prev => [...prev, url]);
+        message.success(`${info.file.name} file uploaded successfully`);
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        message.error(`${info.file.name} file upload failed.`);
+      } finally {
+        setUploadingTab(false);
+      }
+    }
+  };
+
+  const handlePreview = (url) => {
+    setPreviewImage(url);
+    setPreviewVisible(true);
+  };
+
+  const handleDelete = (url) => {
+    if (url === mainImageUrl) {
+      setMainImageUrl(null);
+      form.setFieldsValue({ mainImage: undefined });
+    } else {
+      setTabImageUrls(prev => prev.filter(u => u !== url));
+    }
   };
 
   return (
@@ -118,15 +175,15 @@ const AddProduct = () => {
           <h2 className="text-2xl font-semibold mb-4">Add Product</h2>
           <Form form={form} onFinish={onFinish} layout="vertical" initialValues={{ attributes: [], vat_included: true }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
-              <Form.Item name="category_id" label="Category" rules={[{ required: true }]}>
-                <Select placeholder="Select a category">
+              <Form.Item name="category_id" label="Category">
+                <Select placeholder="Select a category" allowClear>
                   {categories.map(category => (
                     <Option key={category.id} value={category.id}>{category.en_category_name}</Option>
                   ))}
                 </Select>
               </Form.Item>
-              <Form.Item name="brand_id" label="Brand" rules={[{ required: true }]}>
-                <Select placeholder="Select a brand">
+              <Form.Item name="brand_id" label="Brand">
+                <Select placeholder="Select a brand" allowClear>
                   {brands.map(brand => (
                     <Option key={brand.id} value={brand.id}>{brand.en_brand_name}</Option>
                   ))}
@@ -302,24 +359,74 @@ const AddProduct = () => {
               </Form.Item>
             </div>
 
-            <Form.Item name="mainImage" label="Main Image" rules={[{ required: true }]}>
-              <Upload
-                beforeUpload={() => false}
-                onChange={handleMainImageUpload}
-                maxCount={1}
-              >
-                <Button icon={<UploadOutlined />}>Upload Main Image</Button>
-              </Upload>
-            </Form.Item>
+              <Form.Item name="mainImage" label="Main Image" rules={[{ required: true }]}>
+                <Upload
+                  accept="image/*"
+                  customRequest={({ file, onSuccess }) => {
+                    setTimeout(() => {
+                      onSuccess("ok");
+                    }, 0);
+                  }}
+                  onChange={handleMainImageUpload}
+                  maxCount={1}
+                  listType="picture-card"
+                  showUploadList={false}
+                >
+                  {mainImageUrl ? (
+                    <div style={{ position: 'relative' }}>
+                      <img src={mainImageUrl} alt="Main" style={{ width: '100%' }} />
+                      <div style={{ position: 'absolute', top: 0, right: 0 }}>
+                        <Button 
+                          icon={<EyeOutlined />} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreview(mainImageUrl);
+                          }}
+                        />
+                        <Button 
+                          icon={<DeleteOutlined />} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(mainImageUrl);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      {uploadingMain ? <LoadingOutlined /> : <PlusOutlined />}
+                      <div style={{ marginTop: 8 }}>Upload</div>
+                    </div>
+                  )}
+                </Upload>
+              </Form.Item>
 
             <Form.Item name="tabImages" label="Tab Images">
               <Upload
-                beforeUpload={() => false}
-                onChange={handleTabImagesUpload}
+                accept="image/*"
+                customRequest={({ file, onSuccess, onError }) => {
+                  handleTabImagesUpload({ file: { ...file, status: 'done', originFileObj: file } })
+                    .then(() => onSuccess('ok'))
+                    .catch(error => onError(error));
+                }}
                 multiple
                 maxCount={5}
+                listType="picture-card"
+                fileList={tabImageUrls.map((url, index) => ({
+                  uid: `-${index}`,
+                  name: `image-${index}`,
+                  status: 'done',
+                  url: url,
+                }))}
+                onPreview={(file) => handlePreview(file.url)}
+                onRemove={(file) => handleDelete(file.url)}
               >
-                <Button icon={<UploadOutlined />}>Upload Tab Images</Button>
+                {tabImageUrls.length >= 5 ? null : (
+                  <div>
+                    {uploadingTab ? <LoadingOutlined /> : <UploadOutlined />}
+                    <div style={{ marginTop: 8 }}>Upload</div>
+                  </div>
+                )}
               </Upload>
             </Form.Item>
 
@@ -342,6 +449,14 @@ const AddProduct = () => {
           </Form>
         </div>
       </Content>
+      <Modal
+        visible={previewVisible}
+        title="Image Preview"
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+      >
+        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+      </Modal>
     </Layout>
   );
 };

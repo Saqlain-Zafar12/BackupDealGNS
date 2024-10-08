@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const s3Controller = require('../controllers/s3Controller');
 const authTokenMiddleware = require('../middleware/authTokenMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
@@ -21,5 +22,9 @@ router.put('/:id', upload.fields([
   { name: 'mainImage', maxCount: 1 },
   { name: 'tabImages', maxCount: 5 }
 ]), productController.editProduct);
+
+// New S3 routes
+router.post('/upload-image', authTokenMiddleware, upload.single('image'), s3Controller.uploadImage);
+router.delete('/delete-image/:key', authTokenMiddleware, s3Controller.deleteImage);
 
 module.exports = router;
