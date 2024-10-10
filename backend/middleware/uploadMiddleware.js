@@ -14,7 +14,7 @@ const upload = multer({
       cb(null, file.fieldname + '-' + uniqueSuffix + '-' + file.originalname);
     },
     contentType: multerS3.AUTO_CONTENT_TYPE,  // Automatically sets the correct Content-Type
-    acl: 'public-read' 
+    // acl: 'public-read' 
   })
 });
 
