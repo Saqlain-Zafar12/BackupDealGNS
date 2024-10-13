@@ -22,7 +22,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <FaEnvelope className="w-4 h-4 me-2" />
-                meezan@dealsgns.ae
+                shop@gns.ae
               </li>
               <li className="flex items-center">
                 <FaInstagram className="w-4 h-4 me-2" />
@@ -30,7 +30,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center">
                 <FaPhone className="w-4 h-4 me-2" />
-                <span className="ltr:inline-block" dir="ltr">+971 589632147</span>
+                <span className="ltr:inline-block" dir="ltr">+971 50 238 1709</span>
               </li>
             </ul>
           </div>
