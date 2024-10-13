@@ -17,7 +17,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const corsOptions = {
-  origin: ['http://54.179.226.206', 'http://localhost:3000','http://gns.ae','https://www.gns.ae/'],
+  origin: ['http://54.179.226.206', 'http://localhost:3000','http://gns.ae','https://www.gns.ae'],
   credentials: true 
 };
 
