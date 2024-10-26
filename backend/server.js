@@ -32,37 +32,26 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Use auth routes
+// API routes
 app.use('/api/v1/auth', authRoutes);
-
-// Use category routes
 app.use('/api/v1/categories', categoryRoutes);
-
-// Use brand routes
 app.use('/api/v1/brands', brandRoutes);
-
-// Use attributes routes
 app.use('/api/v1/attributes', attributesRoutes);
-
-// Use product routes
 app.use('/api/v1/products', productRoutes);
-
-// Use manager dashboard routes
 app.use('/api/v1/manager-dashboard', managerDashboardRoutes);
-
-// Use order routes
 app.use('/api/v1/orders', orderRoutes);
-
-// Use web-related routes
 app.use('/api/v1/web', webRelatedRoutes);
-
-// Use dashboard routes
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/delivery-types', deliveryTypeRoutes);
 
-// Use delivery type routes
-app.use('/api/v1/delivery-types', deliveryTypeRoutes); // Add this line
-
+// Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'build')));
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CategoryProvider } from './context/CategoryContext';
@@ -46,31 +46,18 @@ const PrivateRoute = ({ children }) => {
 };
 
 function AppContent() {
-  const { loading } = useAuth();
-
-  useEffect(() => {
-    let webUserId = Cookies.get('web_user_id');
-    if (!webUserId) {
-      webUserId = uuidv4();
-      Cookies.set('web_user_id', webUserId, { expires: 365 * 10 });
-    }
-    console.log('Web User ID:', webUserId);
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <Routes>
+      {/* Redirect from root to store */}
       <Route path="/" element={<Navigate to="/store" replace />} />
 
+      {/* Store route */}
       <Route path="/store" element={
         <>
           <Navbar />
           <Store />
           <Footer />
-          <WhatsAppButton /> {/* Add WhatsAppButton here */}
+          <WhatsAppButton />
         </>
       } />
 
@@ -79,7 +66,7 @@ function AppContent() {
           <Navbar />
           <PlaceOrder />
           <Footer />
-          <WhatsAppButton /> {/* Add WhatsAppButton here */}
+          <WhatsAppButton />
         </>
       } />
 
@@ -88,7 +75,7 @@ function AppContent() {
           <Navbar />
           <OrderConfirmation />
           <Footer />
-          <WhatsAppButton /> {/* Add WhatsAppButton here */}
+          <WhatsAppButton />
         </>
       } />
 
@@ -154,7 +141,7 @@ function App() {
       <ScrollToTop />
       <GlobalProvider>
         <AuthProvider>
-          <DashboardProvider> {/* Add DashboardProvider here */}
+          <DashboardProvider>
             <CategoryProvider>
               <BrandProvider>
                 <DeliveryTypeProvider>
