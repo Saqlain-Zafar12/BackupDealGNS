@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Row, Col, Card, Statistic, Table, Spin, Alert, Typography, Layout } from 'antd';
 import { ShoppingOutlined, ShoppingCartOutlined, TagsOutlined, TrademarkOutlined } from '@ant-design/icons';
 import { useDashboard } from '../../context/dashboardContext';
+import '../../styles/CustomTable.css';
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -53,6 +54,12 @@ const ManagerDashboard = () => {
     { title: 'Usage Count', dataIndex: 'usage_count', key: 'usage_count' },
   ];
 
+  const tableProps = {
+    pagination: false,
+    scroll: { y: 240 },
+    className: 'custom-table',
+  };
+
   return (
     <Layout className="bg-green-50">
       <Content className="bg-green-50" style={{ padding: '24px', minHeight: '100vh' }}>
@@ -97,12 +104,13 @@ const ManagerDashboard = () => {
           <Col xs={24}>
             <Card title="Low Stock Products" hoverable>
               {managerStats?.products?.lowStockProducts?.length > 0 ? (
-                <Table 
-                  dataSource={managerStats.products.lowStockProducts}
-                  columns={lowStockColumns} 
-                  pagination={false}
-                  scroll={{ y: 240 }}
-                />
+                <div className="custom-table">
+                  <Table 
+                    dataSource={managerStats.products.lowStockProducts}
+                    columns={lowStockColumns} 
+                    {...tableProps}
+                  />
+                </div>
               ) : (
                 <Alert message="No low stock products" type="info" />
               )}
@@ -113,32 +121,35 @@ const ManagerDashboard = () => {
         <Row gutter={[24, 24]} style={{ marginTop: '24px' }}>
           <Col xs={24} lg={8}>
             <Card title="Top Categories" hoverable>
-              <Table 
-                dataSource={managerStats?.categories?.topCategories}
-                columns={topCategoriesColumns} 
-                pagination={false}
-                scroll={{ y: 240 }}
-              />
+              <div className="custom-table">
+                <Table 
+                  dataSource={managerStats?.categories?.topCategories}
+                  columns={topCategoriesColumns} 
+                  {...tableProps}
+                />
+              </div>
             </Card>
           </Col>
           <Col xs={24} lg={8}>
             <Card title="Top Brands" hoverable>
-              <Table 
-                dataSource={managerStats?.brands?.topBrands}
-                columns={topBrandsColumns} 
-                pagination={false}
-                scroll={{ y: 240 }}
-              />
+              <div className="custom-table">
+                <Table 
+                  dataSource={managerStats?.brands?.topBrands}
+                  columns={topBrandsColumns} 
+                  {...tableProps}
+                />
+              </div>
             </Card>
           </Col>
           <Col xs={24} lg={8}>
             <Card title="Top Attributes" hoverable>
-              <Table 
-                dataSource={managerStats?.attributes?.topAttributes}
-                columns={topAttributesColumns} 
-                pagination={false}
-                scroll={{ y: 240 }}
-              />
+              <div className="custom-table">
+                <Table 
+                  dataSource={managerStats?.attributes?.topAttributes}
+                  columns={topAttributesColumns} 
+                  {...tableProps}
+                />
+              </div>
             </Card>
           </Col>
         </Row>
