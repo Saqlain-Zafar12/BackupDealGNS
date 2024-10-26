@@ -52,17 +52,26 @@ export default function Footer() {
             <h2 className="text-xl font-bold mb-4">{t('footer.information')}</h2>
             <ul className="space-y-2">
               <li>
-                <Link to="/about-us" className="hover:underline text-white">
+                <Link 
+                  to="/about-us" 
+                  className="text-blue-400 hover:text-blue-300 underline transition duration-300 ease-in-out"
+                >
                   {t('footer.aboutUs')}
                 </Link>
               </li>
               <li>
-                <Link to="/unclaimable-products" className="hover:underline text-white">
+                <Link 
+                  to="/unclaimable-products" 
+                  className="text-blue-400 hover:text-blue-300 underline transition duration-300 ease-in-out"
+                >
                   {t('footer.unclaimableProducts')}
                 </Link>
               </li>
               <li>
-                <Link to="/why-us" className="hover:underline text-white">
+                <Link 
+                  to="/why-us" 
+                  className="text-blue-400 hover:text-blue-300 underline transition duration-300 ease-in-out"
+                >
                   {t('footer.whyUs')}
                 </Link>
               </li>
