@@ -17,7 +17,7 @@ const authTokenMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: 'User not found' });
     }
 
-    req.user = result.rows[0];
+    req.user = { id: result.rows[0].id, email: result.rows[0].email, role: decoded.role }; // Include role
     next();
   } catch (error) {
     console.error('Token verification error:', error);

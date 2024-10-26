@@ -5,13 +5,18 @@ import TopBanner from "./TopBanner";
 import { Select } from 'antd';
 import { Button } from './Botton';
 import { useWebRelated } from '../context/WebRelatedContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 export default function Navbar() {
   const { t, i18n } = useTranslation();
   const { setCurrentView, performSearch } = useWebRelated();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   useEffect(() => {
     const storedLanguage = sessionStorage.getItem('language');

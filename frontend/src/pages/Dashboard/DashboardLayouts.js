@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
-import { useAuth } from '../../context/AuthContext'; // Add this import
+import { useAuth } from '../../context/AuthContext';
 import {
   HomeOutlined, 
   UnorderedListOutlined,
@@ -21,7 +21,7 @@ const DashboardLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth(); // Add this line to use the logout function
+  const { logout, user } = useAuth();
 
   const toggle = () => {
     setCollapsed(!collapsed);
@@ -48,7 +48,6 @@ const DashboardLayout = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
   };
 
   const NavLink = ({ to, icon, children }) => (
@@ -58,9 +57,30 @@ const DashboardLayout = () => {
     </Link>
   );
 
+  const managerLinks = [
+    { to: "/dashboard", icon: <HomeOutlined className="mr-3 text-green-600" />, text: "Home" },
+    { to: "/dashboard/products", icon: <UnorderedListOutlined className="mr-3 text-green-600" />, text: "Product List" },
+    { to: "/dashboard/non-active-products", icon: <EyeInvisibleOutlined className="mr-3 text-green-600" />, text: "Non-Active Products" },
+    { to: "/dashboard/add-product", icon: <PlusOutlined className="mr-3 text-green-600" />, text: "Add Product" },
+    { to: "/dashboard/attributes", icon: <TagsOutlined className="mr-3 text-green-600" />, text: "Attributes" },
+    { to: "/dashboard/categories", icon: <AppstoreOutlined className="mr-3 text-green-600" />, text: "Categories" },
+    { to: "/dashboard/brands", icon: <TrademarkOutlined className="mr-3 text-green-600" />, text: "Brands" },
+  ];
+
+  const adminLinks = [
+    ...managerLinks,
+    { to: "/dashboard/orders", icon: <ShoppingCartOutlined className="mr-3 text-green-600" />, text: "Orders" },
+    { to: "/dashboard/confirmed-orders", icon: <CheckCircleOutlined className="mr-3 text-green-600" />, text: "Confirmed Orders" },
+    { to: "/dashboard/delivered-orders", icon: <CarOutlined className="mr-3 text-green-600" />, text: "Delivered Orders" },
+    { to: "/dashboard/cancelled-orders", icon: <StopOutlined className="mr-3 text-green-600" />, text: "Cancelled Orders" },
+    { to: "/dashboard/delivery-types", icon: <CarOutlined className="mr-3 text-green-600" />, text: "Delivery Types" },
+  ];
+
+  const links = user?.role === 'admin' ? adminLinks : managerLinks;
+
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-white"> {/* Light background color */}
-      <aside className={`bg-green-50 transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'fixed inset-0 z-50' : 'hidden'} md:block ${collapsed ? 'md:w-16' : 'md:w-64'} overflow-y-auto scrollbar-thin scrollbar-thumb-green-200 scrollbar-track-green-100`}> {/* Light green sidebar */}
+    <div className="flex flex-col md:flex-row h-screen bg-white">
+      <aside className={`bg-green-50 transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'fixed inset-0 z-50' : 'hidden'} md:block ${collapsed ? 'md:w-16' : 'md:w-64'} overflow-y-auto scrollbar-thin scrollbar-thumb-green-200 scrollbar-track-green-100`}>
         <div className="p-4 flex justify-between items-center">
           {(!collapsed || mobileMenuOpen) && (
             <div className="flex items-center">
@@ -80,18 +100,9 @@ const DashboardLayout = () => {
           </button>
         </div>
         <nav className="mt-4">
-          <NavLink to="/dashboard" icon={<HomeOutlined className="mr-3 text-green-600" />}>Home</NavLink>
-          <NavLink to="/dashboard/products" icon={<UnorderedListOutlined className="mr-3 text-green-600" />}>Product List</NavLink>
-          <NavLink to="/dashboard/non-active-products" icon={<EyeInvisibleOutlined className="mr-3 text-green-600" />}>Non-Active Products</NavLink>
-          <NavLink to="/dashboard/add-product" icon={<PlusOutlined className="mr-3 text-green-600" />}>Add Product</NavLink>
-          <NavLink to="/dashboard/attributes" icon={<TagsOutlined className="mr-3 text-green-600" />}>Attributes</NavLink>
-          <NavLink to="/dashboard/orders" icon={<ShoppingCartOutlined className="mr-3 text-green-600" />}>Orders</NavLink>
-          <NavLink to="/dashboard/confirmed-orders" icon={<CheckCircleOutlined className="mr-3 text-green-600" />}>Confirmed Orders</NavLink>
-          <NavLink to="/dashboard/delivered-orders" icon={<CarOutlined className="mr-3 text-green-600" />}>Delivered Orders</NavLink>
-          <NavLink to="/dashboard/cancelled-orders" icon={<StopOutlined className="mr-3 text-green-600" />}>Cancelled Orders</NavLink>
-          <NavLink to="/dashboard/categories" icon={<AppstoreOutlined className="mr-3 text-green-600" />}>Categories</NavLink>
-          <NavLink to="/dashboard/brands" icon={<TrademarkOutlined className="mr-3 text-green-600" />}>Brands</NavLink>
-          <NavLink to="/dashboard/delivery-types" icon={<CarOutlined className="mr-3 text-green-600" />}>Delivery Types</NavLink>
+          {links.map((link, index) => (
+            <NavLink key={index} to={link.to} icon={link.icon}>{link.text}</NavLink>
+          ))}
           <button
             onClick={handleLogout}
             className="flex items-center w-full px-4 py-2 text-gray-700 hover:bg-green-100 hover:text-green-800 transition-colors duration-200"
@@ -102,7 +113,7 @@ const DashboardLayout = () => {
         </nav>
       </aside>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-green-100 shadow-md p-4 flex justify-between items-center"> {/* Light green header */}
+        <header className="bg-green-100 shadow-md p-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-green-800">Dashboard</h2>
           <div className="flex items-center">
             <button
@@ -116,7 +127,7 @@ const DashboardLayout = () => {
             </button>
           </div>
         </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-green-50 p-6 scrollbar-thin scrollbar-thumb-green-200 scrollbar-track-green-100" style={{ maxHeight: '90vh' }} > {/* Light green main content */}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-green-50 p-6 scrollbar-thin scrollbar-thumb-green-200 scrollbar-track-green-100" style={{ maxHeight: '90vh' }}>
           <Outlet />
         </main>
       </div>

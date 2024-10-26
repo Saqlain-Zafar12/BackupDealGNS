@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           console.log('Verifying token at:', `${API_URL}/auth/verify-token`);
-          console.log('Token:', token);  // Added this line to show token in console
+          console.log('Token:', token);
           const response = await axios.get(`${API_URL}/auth/verify-token`, {
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(`${API_URL}/auth/login`, { email, password });
       const { token } = response.data;
       Cookies.set('token', token);
-      console.log('Login Token:', token);  // Added this line to show token in console
+      console.log('Login Token:', token);
       const userResponse = await axios.get(`${API_URL}/auth/verify-token`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -56,7 +56,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     Cookies.remove('token');
-    navigate('/login');
+    // Use window.location.href to force a full page reload
+    window.location.href = '/login';
   };
 
   const value = {

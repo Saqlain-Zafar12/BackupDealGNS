@@ -15,7 +15,7 @@ const ProductCard = ({ product }) => {
   if (!product) return null;
 console.log(product,"product")
   const handleCardClick = () => {
-    navigate('/place-order', { state: { product } });
+    navigate('/place-order#', { state: { product } });
   };
 
   // Function to check if delivery is free

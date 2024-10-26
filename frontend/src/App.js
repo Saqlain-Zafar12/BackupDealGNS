@@ -30,6 +30,10 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import UserOrders from './components/UserOrders';
 import DeliveryTypeList from './pages/Dashboard/DeliveryTypeList'; // Import DeliveryTypeList
 import WhatsAppButton from "./components/WhatsAppButton"; // Import the WhatsAppButton component
+import ScrollToTop from './components/ScrollToTop';
+import AboutUs from './pages/AboutUs';
+import UnclaimableProducts from './pages/UnclaimableProducts';
+import WhyUs from './pages/WhyUs';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -112,6 +116,33 @@ function AppContent() {
 
       <Route path="/orders" element={<UserOrders />} />
 
+      <Route path="/about-us" element={
+        <>
+          <Navbar />
+          <AboutUs />
+          <Footer />
+          <WhatsAppButton />
+        </>
+      } />
+
+      <Route path="/unclaimable-products" element={
+        <>
+          <Navbar />
+          <UnclaimableProducts />
+          <Footer />
+          <WhatsAppButton />
+        </>
+      } />
+
+      <Route path="/why-us" element={
+        <>
+          <Navbar />
+          <WhyUs />
+          <Footer />
+          <WhatsAppButton />
+        </>
+      } />
+
       <Route path="*" element={<h1 className="text-2xl font-bold text-center mt-10">404: Page Not Found</h1>} />
     </Routes>
   );
@@ -120,6 +151,7 @@ function AppContent() {
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <GlobalProvider>
         <AuthProvider>
           <DashboardProvider> {/* Add DashboardProvider here */}

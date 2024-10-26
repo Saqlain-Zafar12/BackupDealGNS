@@ -29,7 +29,7 @@
     },
     "footer": {
       "contactUs": "Contact Us",
-      "companyInfo": "Website owned by dealsGNS LLC, Shams Free Zone, Sharjah Media City, Sharjah, UAE",
+      "companyInfo": "Website owned by Shams FZE SHARJAH",
       "information": "Information",
       "aboutUs": "About Us",
       "unclaimableProducts": "Un-Claimable Products",
@@ -114,5 +114,46 @@
     },
     "errors": {
       "fetchOrders": "Error fetching orders. Please try again later."
+    },
+    "aboutUs": {
+      "title": "About Us",
+      "ourStory": "Our Story",
+      "storyContent": "Founded as a visionary e-commerce venture, our company has rapidly evolved into a premier destination for discerning customers seeking high-quality beauty products and cutting-edge home appliances. Our journey of growth is underpinned by an unwavering commitment to excellence and customer satisfaction.",
+      "ourMission": "Our Mission",
+      "missionContent": "We aim to provide high-quality beauty and home products to our customers, focusing on customer satisfaction and innovation.",
+      "ourProducts": "Our Products",
+      "skinCare": "Skin Care",
+      "hairCare": "Hair Care",
+      "beautyProducts": "Beauty Products",
+      "homeAppliances": "Home Appliances",
+      "ourCommitment": "Our Commitment",
+      "commitmentContent": "We are committed to providing the best shopping experience for our customers, ensuring quality and excellent service."
+    },
+    "unclaimableProducts": {
+      "title": "Unclaimable Products",
+      "whatAreThey": "What are Unclaimable Products?",
+      "explanation": "Unclaimable products are items that cannot be returned or exchanged due to health and safety reasons or personal use.",
+      "examples": "Examples of Unclaimable Products",
+      "personalizedItems": "Personalized items",
+      "intimateProducts": "Intimate products",
+      "openedBeautyProducts": "Opened beauty products",
+      "usedAppliances": "Used home appliances",
+      "ourPolicy": "Our Policy",
+      "policyContent": "To ensure the safety and hygiene of all our customers, we do not accept returns or exchanges for unclaimable products.",
+      "customerSupport": "Customer Support",
+      "supportContent": "If you have any questions about unclaimable products, please contact our customer support team."
+    },
+    "whyUs": {
+      "title": "Why Us?",
+      "qualityProducts": "Quality Products",
+      "qualityContent": "We source only the best products for our customers, ensuring quality and performance.",
+      "fastDelivery": "Fast Delivery",
+      "deliveryContent": "We ensure quick and reliable delivery for all your orders.",
+      "securePayments": "Secure Payments",
+      "paymentsContent": "Your transactions are always safe with us, using the latest security technologies.",
+      "customerSatisfaction": "Customer Satisfaction",
+      "satisfactionContent": "We prioritize our customers' happiness and strive to provide an exceptional shopping experience.",
+      "ourPromise": "Our Promise to You",
+      "promiseContent": "At our company, we promise to provide an exceptional shopping experience with high-quality products and excellent customer service."
     }
   }

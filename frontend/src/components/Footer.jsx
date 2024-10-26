@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { FaFacebook, FaInstagram, FaEnvelope, FaPhone } from "react-icons/fa";
 import { FaTiktok } from "react-icons/fa6";
 import { Input } from './Input';
@@ -17,19 +18,32 @@ export default function Footer() {
             <p className="mb-2">{t('footer.companyInfo')}</p>
             <ul className="space-y-2">
               <li className="flex items-center">
-                <FaFacebook className="w-4 h-4 me-2" />
-                <a href="https://www.facebook.com/people/GNS/61566604420028/" target="_blank" rel="noopener noreferrer">GNS</a>
+                <FaFacebook className="w-4 h-4 me-2 text-white" />
+                <a href="https://www.facebook.com/people/GNS/61566604420028/" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="text-blue-400 hover:text-blue-300 underline">
+                  GNS
+                </a>
               </li>
               <li className="flex items-center">
-                <FaEnvelope className="w-4 h-4 me-2" />
-                shop@gns.ae
+                <FaEnvelope className="w-4 h-4 me-2 text-white" />
+                <a href="mailto:shop@gns.ae"
+                   className="text-blue-400 hover:text-blue-300 underline">
+                  shop@gns.ae
+                </a>
               </li>
               <li className="flex items-center">
-                <FaInstagram className="w-4 h-4 me-2" />
-                <a href="https://www.instagram.com/gnsecom/" target="_blank" rel="noopener noreferrer">gnsecom</a>
+                <FaInstagram className="w-4 h-4 me-2 text-white" />
+                <a href="https://www.instagram.com/gnsecom/" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   className="text-blue-400 hover:text-blue-300 underline">
+                  gnsecom
+                </a>
               </li>
               <li className="flex items-center">
-                <FaPhone className="w-4 h-4 me-2" />
+                <FaPhone className="w-4 h-4 me-2 text-white" />
                 <span className="ltr:inline-block" dir="ltr">+971 50 238 1709</span>
               </li>
             </ul>
@@ -37,9 +51,21 @@ export default function Footer() {
           <div>
             <h2 className="text-xl font-bold mb-4">{t('footer.information')}</h2>
             <ul className="space-y-2">
-              <li>{t('footer.aboutUs')}</li>
-              <li>{t('footer.unclaimableProducts')}</li>
-              <li>{t('footer.whyUs')}</li>
+              <li>
+                <Link to="/about-us" className="hover:underline text-white">
+                  {t('footer.aboutUs')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/unclaimable-products" className="hover:underline text-white">
+                  {t('footer.unclaimableProducts')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/why-us" className="hover:underline text-white">
+                  {t('footer.whyUs')}
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -65,11 +91,17 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 text-center text-sm">
-          <a href="#" className="hover:underline">{t('footer.privacyPolicy')}</a>
+          <Link to="#" className="hover:underline text-white">
+            {t('footer.privacyPolicy')}
+          </Link>
           {' - '}
-          <a href="#" className="hover:underline">{t('footer.termsOfUse')}</a>
+          <Link to="#" className="hover:underline text-white">
+            {t('footer.termsOfUse')}
+          </Link>
           {' - '}
-          <a href="#" className="hover:underline">{t('footer.legalEnquiryGuide')}</a>
+          <Link to="#" className="hover:underline text-white">
+            {t('footer.legalEnquiryGuide')}
+          </Link>
         </div>
         <div className="mt-4 text-center text-sm">
           © 2021 dealsgns, {t('footer.allRightsReserved')}
