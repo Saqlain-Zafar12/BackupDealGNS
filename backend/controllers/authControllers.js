@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../db/db');
 
 const register = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role = 'manager' } = req.body; // Default role to 'manager'
 
   if (!email || !password) {
     return res.status(400).json({ message: 'Email and password are required' });
@@ -20,8 +20,8 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const query = 'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email';
-    const values = [email, hashedPassword];
+    const query = 'INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING id, email, role';
+    const values = [email, hashedPassword, role];
 
     const result = await pool.query(query, values);
     res.status(201).json({ message: 'User registered successfully', user: result.rows[0] });
@@ -57,8 +57,20 @@ const login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your_secret_key', { expiresIn: '12h' });
-    res.json({ message: 'Login successful', token });
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET || 'your_secret_key',
+      { expiresIn: '12h' }
+    );
+    res.json({
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Error logging in', error: error.message });
@@ -74,7 +86,7 @@ const verifyToken = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_secret_key');
-    const query = 'SELECT id, email FROM users WHERE id = $1';
+    const query = 'SELECT id, email, role FROM users WHERE id = $1';
     const result = await pool.query(query, [decoded.userId]);
 
     if (result.rows.length === 0) {

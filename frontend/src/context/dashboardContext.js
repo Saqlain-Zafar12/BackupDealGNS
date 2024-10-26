@@ -19,6 +19,7 @@ export const DashboardProvider = ({ children }) => {
   const [weeklySales, setWeeklySales] = useState([]);
   const dataFetchedRef = useRef(false);
   const [delayedFetch, setDelayedFetch] = useState(false);
+  const [managerStats, setManagerStats] = useState({});
 
   const token = Cookies.get('token');
 
@@ -56,6 +57,22 @@ export const DashboardProvider = ({ children }) => {
   const fetchMonthlySales = useCallback(() => fetchData('/monthly-sales', setMonthlySales), [fetchData]);
   const fetchWeeklyRevenue = useCallback(() => fetchData('/weekly-revenue', setWeeklyRevenue), [fetchData]);
   const fetchWeeklySales = useCallback(() => fetchData('/weekly-sales', setWeeklySales), [fetchData]);
+
+  const fetchManagerData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get(`${API_URL}/manager-dashboard/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setManagerStats(response.data);
+    } catch (err) {
+      console.error('Error fetching manager dashboard data:', err);
+      setError('Error fetching manager dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   const fetchAllData = useCallback(async (forceRefetch = false) => {
     if (dataFetchedRef.current && !forceRefetch) return;
@@ -108,6 +125,8 @@ export const DashboardProvider = ({ children }) => {
     setDelayedFetch,
     fetchAllData,
     resetDashboardData,
+    managerStats,
+    fetchManagerData,
   };
 
   return (

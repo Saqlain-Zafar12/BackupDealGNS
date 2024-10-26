@@ -11,7 +11,9 @@ const { Option } = Select;
 const { Content } = Layout;
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
-
+setTimeout(() => {
+  window.scrollTo(0, 0);
+}, 100);
 const ImageViewer = ({ currentImage, t, discount, freeDelivery }) => {
   return (
     <div className="relative">
@@ -45,7 +47,9 @@ const ImageViewer = ({ currentImage, t, discount, freeDelivery }) => {
     </div>
   );
 };
-
+setTimeout(() => {
+  window.scrollTo(0, 0);
+}, 100);
 const PlaceOrder = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
@@ -197,7 +201,11 @@ console.log(productData)
               </Card>
             </Col>
             <Col xs={24} md={12} lg={12} xl={12}>
-              <Card title={t('placeOrder.orderNow')}>
+              <Card title={
+                <Typography.Title level={3} className="font-bold text-2xl md:text-3xl">
+                  {t('placeOrder.orderNow')}
+                </Typography.Title>
+              }>
                 <Form form={form} layout="vertical" onFinish={onFinish}>
                   <Form.Item
                     name="fullName"
@@ -288,10 +296,14 @@ console.log(productData)
                 </Form>
               </Card>
               
-              {/* New Card for Product Description */}
-              <Card className="mt-4 ">
-              <h1><b>{t('placeOrder.description')}</b></h1>
-              {description}
+              {/* Updated Card for Product Description */}
+              <Card className="mt-4">
+                <Typography.Title level={4} className="font-bold text-xl md:text-2xl mb-4">
+                  {t('placeOrder.description')}
+                </Typography.Title>
+                <Typography.Paragraph className="text-base md:text-lg">
+                  {description}
+                </Typography.Paragraph>
               </Card>
             </Col>
           </Row>

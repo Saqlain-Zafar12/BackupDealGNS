@@ -12,7 +12,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const webRelatedRoutes = require('./routes/webRelatedRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const deliveryTypeRoutes = require('./routes/deliveryTypeRoute'); // Add this line
-
+const managerDashboardRoutes = require('./routes/managerDashboardRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -47,6 +47,9 @@ app.use('/api/v1/attributes', attributesRoutes);
 // Use product routes
 app.use('/api/v1/products', productRoutes);
 
+// Use manager dashboard routes
+app.use('/api/v1/manager-dashboard', managerDashboardRoutes);
+
 // Use order routes
 app.use('/api/v1/orders', orderRoutes);
 
@@ -60,10 +63,6 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/delivery-types', deliveryTypeRoutes); // Add this line
 
 app.use(express.static(path.join(__dirname, 'build')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -3,13 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { FaCheckCircle, FaBox, FaShoppingBag, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useWebRelated } from '../context/WebRelatedContext';
-
+setTimeout(() => {
+  window.scrollTo(0, 0);
+}, 100);
 const OrderConfirmation = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { getUserOrders } = useWebRelated();
   const [orderDetails, setOrderDetails] = useState(null);
-
+ 
   useEffect(() => {
     const storedLanguage = sessionStorage.getItem('language');
     if (storedLanguage) {

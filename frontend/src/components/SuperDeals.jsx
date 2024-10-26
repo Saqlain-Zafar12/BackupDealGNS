@@ -14,7 +14,7 @@ const SuperDealCard = ({ deal }) => {
   if (!deal) return null;
   console.log(deal,"deal.total_price");
   const handleCardClick = () => {
-    navigate('/place-order', { state: { product: deal } });
+    navigate('/place-order#', { state: { product: deal } });
   };
 
   // Function to check if delivery is free
