@@ -3,17 +3,17 @@
   "name": "GNS ECOMMERCE LLC",
   "icons": [
     {
-      "src": "final_gns_new_2-1-removebg-preview.png",
+      "src": "logo192.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/png"
     },
     {
-      "src": "final_gns_new_2-1-removebg-preview.png",
+      "src": "logo192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "final_gns_new_2-1-removebg-preview.png",
+      "src": "logo192.png",
       "type": "image/png",
       "sizes": "512x512"
     }
