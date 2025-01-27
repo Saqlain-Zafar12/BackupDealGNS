@@ -5,17 +5,17 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 const watches = [
   {
     id: 1,
-    src: "/c1.avif",
+    src: "/k1.webp",
     alt: "Apple Watch with black fabric band and colorful watch face"
   },
   {
     id: 2,
-    src: "/c2.avif",
+    src: "/k2.webp",
     alt: "Apple Watch with black rubber band showing app grid"
   },
   {
     id: 3,
-    src: "/c3.avif",
+    src: "/k3.webp",
     alt: "Apple Watch with black fabric band and colorful watch face"
   },
 ];

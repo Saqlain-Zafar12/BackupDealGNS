@@ -38,7 +38,6 @@ exports.getRecommendedProducts = async (req, res) => {
             WHEN LOWER(COALESCE(c.en_category_name, '')) LIKE LOWER($1) OR LOWER(COALESCE(c.ar_category_name, '')) LIKE LOWER($1) THEN 3
             ELSE 4
           END
-        LIMIT 20
       `;
       queryParams = [`%${query}%`];
     } else {
@@ -61,7 +60,6 @@ exports.getRecommendedProducts = async (req, res) => {
         LEFT JOIN brands b ON p.brand_id = b.id
         WHERE p.is_active = true
         ORDER BY p.created_at DESC
-        LIMIT 20
       `;
     }
 
